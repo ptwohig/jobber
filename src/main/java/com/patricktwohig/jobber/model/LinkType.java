@@ -4,6 +4,12 @@ public enum LinkType {
 
     GITHUB,
 
-    LINKEDIN
+    LINKED_IN,
+
+    TWITTER_X,
+
+    COMPANY_WEBSITE,
+
+    PERSONAL_WEBSITE
 
 }
