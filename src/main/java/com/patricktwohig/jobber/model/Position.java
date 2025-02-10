@@ -1,5 +1,6 @@
 package com.patricktwohig.jobber.model;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,6 +13,10 @@ public class Position {
     private String location;
 
     private PositionType positionType;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     private List<String> accomplishmentStatements;
 
@@ -39,6 +44,14 @@ public class Position {
         this.location = location;
     }
 
+    public PositionType getPositionType() {
+        return positionType;
+    }
+
+    public void setPositionType(PositionType positionType) {
+        this.positionType = positionType;
+    }
+
     public List<String> getAccomplishmentStatements() {
         return accomplishmentStatements;
     }
@@ -47,16 +60,33 @@ public class Position {
         this.accomplishmentStatements = accomplishmentStatements;
     }
 
+    public LocalDate getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Position{");
-        sb.append("title='").append(title).append('\'');
-        sb.append(", company='").append(company).append('\'');
-        sb.append(", location='").append(location).append('\'');
-        sb.append(", positionType=").append(positionType);
-        sb.append(", accomplishmentStatements=").append(accomplishmentStatements);
-        sb.append('}');
-        return sb.toString();
+        return "Position{" +
+                "title='" + title + '\'' +
+                ", company='" + company + '\'' +
+                ", location='" + location + '\'' +
+                ", positionType=" + positionType +
+                ", startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                ", accomplishmentStatements=" + accomplishmentStatements +
+                '}';
     }
 
     @Override
@@ -64,12 +94,11 @@ public class Position {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Position position = (Position) o;
-        return Objects.equals(getTitle(), position.getTitle()) && Objects.equals(getCompany(), position.getCompany()) && Objects.equals(getLocation(), position.getLocation()) && positionType == position.positionType && Objects.equals(getAccomplishmentStatements(), position.getAccomplishmentStatements());
+        return Objects.equals(title, position.title) && Objects.equals(company, position.company) && Objects.equals(location, position.location) && positionType == position.positionType && Objects.equals(startDate, position.startDate) && Objects.equals(endDate, position.endDate) && Objects.equals(accomplishmentStatements, position.accomplishmentStatements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getTitle(), getCompany(), getLocation(), positionType, getAccomplishmentStatements());
+        return Objects.hash(title, company, location, positionType, startDate, endDate, accomplishmentStatements);
     }
-
 }

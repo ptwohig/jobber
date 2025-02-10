@@ -1,5 +1,7 @@
 package com.patricktwohig.jobber.model;
 
+import java.util.Objects;
+
 public class JobDescriptionAnalysis {
 
     private String title;
@@ -97,5 +99,17 @@ public class JobDescriptionAnalysis {
         return sb.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JobDescriptionAnalysis that = (JobDescriptionAnalysis) o;
+        return Double.compare(qualityScore, that.qualityScore) == 0 && Double.compare(salaryScore, that.salaryScore) == 0 && Objects.equals(title, that.title) && Objects.equals(description, that.description) && Objects.equals(advertised, that.advertised) && Objects.equals(industryAverage, that.industryAverage) && Objects.equals(employer, that.employer) && Objects.equals(personalRecommendations, that.personalRecommendations);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(title, description, qualityScore, salaryScore, advertised, industryAverage, employer, personalRecommendations);
+    }
 
 }

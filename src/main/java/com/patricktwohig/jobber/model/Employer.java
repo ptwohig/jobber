@@ -5,26 +5,26 @@ import java.util.Objects;
 
 public class Employer {
 
-    private String company;
+    private String companyName;
 
-    private String websiteUrl;
+    private Link website;
 
     private List<String> addressLines;
 
-    public String getCompany() {
-        return company;
+    public String getCompanyName() {
+        return companyName;
     }
 
-    public void setCompany(String company) {
-        this.company = company;
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
     }
 
-    public String getWebsiteUrl() {
-        return websiteUrl;
+    public Link getWebsite() {
+        return website;
     }
 
-    public void setWebsiteUrl(String websiteUrl) {
-        this.websiteUrl = websiteUrl;
+    public void setWebsite(Link website) {
+        this.website = website;
     }
 
     public List<String> getAddressLines() {
@@ -37,12 +37,11 @@ public class Employer {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Employer{");
-        sb.append("company='").append(company).append('\'');
-        sb.append(", websiteUrl='").append(websiteUrl).append('\'');
-        sb.append(", addressLines=").append(addressLines);
-        sb.append('}');
-        return sb.toString();
+        return "Employer{" +
+                "companyName='" + companyName + '\'' +
+                ", website=" + website +
+                ", addressLines=" + addressLines +
+                '}';
     }
 
     @Override
@@ -50,12 +49,12 @@ public class Employer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Employer employer = (Employer) o;
-        return Objects.equals(getCompany(), employer.getCompany()) && Objects.equals(getWebsiteUrl(), employer.getWebsiteUrl()) && Objects.equals(getAddressLines(), employer.getAddressLines());
+        return Objects.equals(companyName, employer.companyName) && Objects.equals(website, employer.website) && Objects.equals(addressLines, employer.addressLines);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getCompany(), getWebsiteUrl(), getAddressLines());
+        return Objects.hash(companyName, website, addressLines);
     }
 
 }

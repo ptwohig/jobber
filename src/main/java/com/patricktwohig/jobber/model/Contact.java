@@ -11,6 +11,8 @@ public class Contact {
 
     private String phone;
 
+    private String location;
+
     private List<Link> links;
 
     public String getName() {
@@ -35,6 +37,14 @@ public class Contact {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public List<Link> getLinks() {

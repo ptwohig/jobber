@@ -9,9 +9,9 @@ public class CoverLetter {
 
     private Employer employer;
 
-    private Contact reciepient;
+    private Contact recipient;
 
-    private List<String> paragraphs;
+    private List<String> bodyParagraphs;
 
     public Contact getSender() {
         return sender;
@@ -29,31 +29,30 @@ public class CoverLetter {
         this.employer = employer;
     }
 
-    public Contact getReciepient() {
-        return reciepient;
+    public Contact getRecipient() {
+        return recipient;
     }
 
-    public void setReciepient(Contact reciepient) {
-        this.reciepient = reciepient;
+    public void setRecipient(Contact recipient) {
+        this.recipient = recipient;
     }
 
-    public List<String> getParagraphs() {
-        return paragraphs;
+    public List<String> getBodyParagraphs() {
+        return bodyParagraphs;
     }
 
-    public void setParagraphs(List<String> paragraphs) {
-        this.paragraphs = paragraphs;
+    public void setBodyParagraphs(List<String> bodyParagraphs) {
+        this.bodyParagraphs = bodyParagraphs;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("CoverLetter{");
-        sb.append("sender=").append(sender);
-        sb.append(", employer=").append(employer);
-        sb.append(", reciepient=").append(reciepient);
-        sb.append(", paragraphs=").append(paragraphs);
-        sb.append('}');
-        return sb.toString();
+        return "CoverLetter{" +
+                "sender=" + sender +
+                ", employer=" + employer +
+                ", reciepient=" + recipient +
+                ", paragraphs=" + bodyParagraphs +
+                '}';
     }
 
     @Override
@@ -61,12 +60,12 @@ public class CoverLetter {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CoverLetter that = (CoverLetter) o;
-        return Objects.equals(getSender(), that.getSender()) && Objects.equals(getEmployer(), that.getEmployer()) && Objects.equals(getReciepient(), that.getReciepient()) && Objects.equals(getParagraphs(), that.getParagraphs());
+        return Objects.equals(sender, that.sender) && Objects.equals(employer, that.employer) && Objects.equals(recipient, that.recipient) && Objects.equals(bodyParagraphs, that.bodyParagraphs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getSender(), getEmployer(), getReciepient(), getParagraphs());
+        return Objects.hash(sender, employer, recipient, bodyParagraphs);
     }
 
 }

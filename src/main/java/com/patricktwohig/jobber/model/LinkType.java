@@ -2,14 +2,22 @@ package com.patricktwohig.jobber.model;
 
 public enum LinkType {
 
-    GITHUB,
+    GITHUB("GitHub"),
 
-    LINKED_IN,
+    LINKED_IN("LinkedIn"),
 
-    TWITTER_X,
+    COMPANY_WEBSITE("Company"),
 
-    COMPANY_WEBSITE,
+    PERSONAL_WEBSITE("Website");
 
-    PERSONAL_WEBSITE
+    private final String displayText;
+
+    LinkType(final String displayText) {
+        this.displayText = displayText;
+    }
+
+    public String getDisplayText() {
+        return displayText;
+    }
 
 }
