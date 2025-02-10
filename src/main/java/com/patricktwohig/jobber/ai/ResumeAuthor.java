@@ -5,7 +5,10 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
-@SystemMessage("You author resumes for jobseekers based on information provided.")
+@SystemMessage(
+        "You author resumes for jobseekers based on information provided. You must customize each cover letter " +
+        "to the job description and the using the base cover letter."
+)
 public interface ResumeAuthor {
 
     @UserMessage(

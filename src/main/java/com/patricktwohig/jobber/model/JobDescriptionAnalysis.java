@@ -1,8 +1,6 @@
 package com.patricktwohig.jobber.model;
 
-import java.util.Objects;
-
-public class JobDescription {
+public class JobDescriptionAnalysis {
 
     private String title;
 
@@ -17,8 +15,6 @@ public class JobDescription {
     private Salary industryAverage;
 
     private Employer employer;
-
-    private Contact hiringManager;
 
     private String personalRecommendations;
 
@@ -78,14 +74,6 @@ public class JobDescription {
         this.employer = employer;
     }
 
-    public Contact getHiringManager() {
-        return hiringManager;
-    }
-
-    public void setHiringManager(Contact hiringManager) {
-        this.hiringManager = hiringManager;
-    }
-
     public String getPersonalRecommendations() {
         return personalRecommendations;
     }
@@ -96,7 +84,7 @@ public class JobDescription {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("JobDescription{");
+        final StringBuilder sb = new StringBuilder("JobDescriptionAnalysis{");
         sb.append("title='").append(title).append('\'');
         sb.append(", description='").append(description).append('\'');
         sb.append(", qualityScore=").append(qualityScore);
@@ -104,22 +92,10 @@ public class JobDescription {
         sb.append(", advertised=").append(advertised);
         sb.append(", industryAverage=").append(industryAverage);
         sb.append(", employer=").append(employer);
-        sb.append(", hiringManager=").append(hiringManager);
         sb.append(", personalRecommendations='").append(personalRecommendations).append('\'');
         sb.append('}');
         return sb.toString();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        JobDescription that = (JobDescription) o;
-        return Double.compare(getQualityScore(), that.getQualityScore()) == 0 && Double.compare(getSalaryScore(), that.getSalaryScore()) == 0 && Objects.equals(getTitle(), that.getTitle()) && Objects.equals(getDescription(), that.getDescription()) && Objects.equals(getAdvertised(), that.getAdvertised()) && Objects.equals(getIndustryAverage(), that.getIndustryAverage()) && Objects.equals(getEmployer(), that.getEmployer()) && Objects.equals(getHiringManager(), that.getHiringManager()) && Objects.equals(getPersonalRecommendations(), that.getPersonalRecommendations());
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getTitle(), getDescription(), getQualityScore(), getSalaryScore(), getAdvertised(), getIndustryAverage(), getEmployer(), getHiringManager(), getPersonalRecommendations());
-    }
 }
