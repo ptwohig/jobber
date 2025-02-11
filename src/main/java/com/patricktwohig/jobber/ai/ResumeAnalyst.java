@@ -5,13 +5,11 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
-@SystemMessage("You are data analyst whose job it is to read documents and convert them to structured data.")
+@SystemMessage("You are a data analyst whose job is to read resumes and organize them into structured data.")
 public interface ResumeAnalyst {
 
-    @UserMessage(
-            "Parse the following text for a job applicant and convert it to a resume in structured form: " +
-            "{{resumePlainText}}"
-    )
+    @SystemMessage("Read the following resume and convert into the desired format.")
+    @UserMessage("Jobseeker's Resume - {{resumePlainText}}")
     Resume analyzePlainText(@V("resumePlainText") String resumePlainText);
 
 }

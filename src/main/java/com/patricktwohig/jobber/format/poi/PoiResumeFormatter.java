@@ -77,8 +77,8 @@ public class PoiResumeFormatter implements ResumeFormatter {
         }
 
         private void generateNumberingId() {
-            final var numbering = document().createNumbering();
 
+            final var numbering = document().createNumbering();
             final var ctAbstractNum = CTAbstractNum.Factory.newInstance();
             ctAbstractNum.setAbstractNumId(numberingId());
 
