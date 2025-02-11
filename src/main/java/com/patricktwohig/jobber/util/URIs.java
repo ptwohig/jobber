@@ -1,7 +1,5 @@
 package com.patricktwohig.jobber.util;
 
-import org.apache.poi.hwpf.HWPFDocument;
-import org.apache.poi.hwpf.extractor.WordExtractor;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 
@@ -10,6 +8,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.function.Predicate.not;
 
 public class URIs {
 
@@ -23,8 +27,9 @@ public class URIs {
 
     public static String getValue(final URI uri, final String defaultScheme) {
         return switch (uri.getScheme() == null ? defaultScheme : uri.getScheme()) {
-            case TEXT_SCHEME -> uri.getAuthority();
+            case TEXT_SCHEME -> readUriComponents(uri);
             case FILE_SCHEME -> loadFile(uri);
+            case ENVIRONMENT_SCHEME -> readEnvironment(uri);
             default -> throw new IllegalArgumentException("Unknown URI scheme: " + uri);
         };
     }
@@ -41,6 +46,18 @@ public class URIs {
             throw new UncheckedIOException(ex);
         }
 
+    }
+
+    private static String readEnvironment(final URI uri) {
+        final var environmentVariable = readUriComponents(uri);
+        return System.getenv(environmentVariable);
+    }
+
+    private static String readUriComponents(final URI uri) {
+        return Stream.of(uri.getAuthority(), uri.getHost(), uri.getPath())
+                .filter(Objects::nonNull)
+                .filter(not(String::isBlank))
+                .collect(Collectors.joining("/"));
     }
 
 }

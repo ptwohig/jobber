@@ -26,8 +26,7 @@ public class OpenAIModule extends PrivateModule {
         bind(ChatLanguageModel.class)
                 .to(OpenAiChatModel.class)
                 .asEagerSingleton();
-
-
+        
     }
 
     @Provides
