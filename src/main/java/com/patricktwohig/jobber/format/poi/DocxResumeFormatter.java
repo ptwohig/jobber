@@ -2,11 +2,10 @@ package com.patricktwohig.jobber.format.poi;
 
 import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.model.*;
+import org.apache.poi.xwpf.usermodel.Borders;
 import org.apache.poi.xwpf.usermodel.XWPFAbstractNum;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
-import org.openxmlformats.schemas.officeDocument.x2006.sharedTypes.STOnOff1;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyles;
 
@@ -19,12 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.model.PositionType.EMPLOYEE;
 import static java.util.function.Predicate.not;
-import static org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER;
+import static org.apache.poi.xwpf.usermodel.ParagraphAlignment.*;
 import static org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat.BULLET;
 import static org.openxmlformats.schemas.wordprocessingml.x2006.main.STStyleType.PARAGRAPH;
 
@@ -50,7 +48,9 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final String BULLET_TEXT = "•";
 
-    private static final int BULLET_INDENTATION = 720;
+    private static final int BULLET_INDENTATION = 600;
+
+    private static final int BULLET_HANGING_SPACE = BULLET_INDENTATION / 2;
 
     private static final String SKILLS_HEADLINE = "Core Competencies";
 
@@ -58,13 +58,17 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final DateTimeFormatter EDUCATION_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy");
 
+    private static final String NAME_BACKGROUND_COLOR = "D474FC";
+
+    private static final String CONTACT_BACKGROUND_COLOR = "D1BAFF";
+
+    private static final String SKILLS_SUMMARY_BACKGROUND_COLOR = "F5C4FF";
+
     @Override
     public void format(final Resume resume, final OutputStream outputStream) throws IOException {
-
         try (final var document = new ResumeDocument(new XWPFDocument(), resume, BigInteger.ZERO)) {
             document.write(outputStream);
         }
-
     }
 
     private record ResumeDocument(
@@ -81,10 +85,10 @@ public class DocxResumeFormatter implements ResumeFormatter {
             final var numbering = document.createNumbering();
 
             final var numberingId = numbering.getAbstractNums().stream()
-                    .map(n -> n.getAbstractNum().getAbstractNumId())
-                    .max(BigInteger::compareTo)
-                    .map(n -> n.add(BigInteger.ONE))
-                    .orElse(baseNumberingId);
+                        .map(n -> n.getAbstractNum().getAbstractNumId())
+                        .max(BigInteger::compareTo)
+                        .map(n -> n.add(BigInteger.ONE))
+                        .orElse(baseNumberingId);
 
             final var ctAbstractNum = CTAbstractNum.Factory.newInstance();
             ctAbstractNum.setAbstractNumId(numberingId);
@@ -93,12 +97,15 @@ public class DocxResumeFormatter implements ResumeFormatter {
             level.setIlvl(BigInteger.ZERO);
             level.addNewNumFmt().setVal(BULLET);
             level.addNewLvlText().setVal(BULLET_TEXT);
-            level.addNewPPr().addNewInd().setLeft(BigInteger.valueOf(BULLET_INDENTATION));
+
+            final var indent = level.addNewPPr().addNewInd();
+            indent.setLeft(BigInteger.valueOf(BULLET_INDENTATION)); // 1 inch (total indent)
+            indent.setHanging(BigInteger.valueOf(BULLET_HANGING_SPACE)); // 0.5 inch (space after bullet)
 
             final var abstractNum = new XWPFAbstractNum(ctAbstractNum, numbering);
             numbering.addAbstractNum(abstractNum);
 
-            return numberingId;
+            return numbering.addNum(numberingId);
 
         }
 
@@ -112,7 +119,9 @@ public class DocxResumeFormatter implements ResumeFormatter {
             setDocumentMargins();
             writeContactInformation();
             writeHeadline();
+            createHorizontalRule();
             writeExperience();
+            createHorizontalRule();
             writeEducation();
             document().write(outputStream);
         }
@@ -153,14 +162,27 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
         }
 
-        private XWPFParagraph createNotSplittingParagraph() {
+        private XWPFParagraph createStandardParagraph() {
             final var paragraph = document().createParagraph();
-            final var ctp = paragraph.getCTP();
-            final var ppr = ctp.isSetPPr() ? ctp.getPPr() : ctp.addNewPPr();
-            final var keepLines = (ppr.isSetKeepLines()) ? ppr.getKeepLines() : ppr.addNewKeepLines();
-            keepLines.setVal(STOnOff1.ON);
             paragraph.setSpacingAfter(PARAGRAPH_SPACING);
             return paragraph;
+        }
+
+        private XWPFParagraph createStandardParagraph(final String backgroundColor) {
+            final var paragraph = createStandardParagraph();
+            final var ppr = paragraph.getCTP().addNewPPr();
+            final var shd = ppr.isSetShd() ? ppr.getShd() : ppr.addNewShd();
+            shd.setFill(backgroundColor);
+            return paragraph;
+        }
+
+        private void createHorizontalRule() {
+            new HorizontalRule.Builder()
+                    .withDocument(document())
+                    .withBorder(Borders.SINGLE)
+                    .withLeftIndent(450)
+                    .withRightIndent(450)
+                    .buildAndWrite();
         }
 
         private void writeContactInformation() {
@@ -183,29 +205,32 @@ public class DocxResumeFormatter implements ResumeFormatter {
                     .filter(not(String::isBlank))
                     .toList();
 
-            final var nameParagraph = createNotSplittingParagraph();
+            final var nameParagraph = createStandardParagraph(NAME_BACKGROUND_COLOR);
             nameParagraph.setAlignment(CENTER);
 
             var run = nameParagraph.createRun();
             run.setBold(HEADLINE_BOLD);
             run.setFontSize(HEADLINE_SIZE);
             run.setText(contactName == null ? "<<Your Name>>" : contactName);
-            run.addBreak();
 
-            final var contactParagraph = writeSplitList(allContactInfo, (nfo, p) -> {
-                final var contactInfoRun = p.createRun();
-                contactInfoRun.setText(nfo);
-                return contactInfoRun;
-            });
-
+            final var contactParagraph = createStandardParagraph(CONTACT_BACKGROUND_COLOR);
             contactParagraph.setAlignment(CENTER);
 
-            final var linkParagraph = writeSplitList(allLinks, (link, p) -> {
-                final var record = new DocumentLinkRecord(document(), link);
-                return record.writeAbbreviated(p);
-            });
-
-            linkParagraph.setAlignment(CENTER);
+            new SplitList.Builder()
+                    .withDelimiter(() -> {
+                        final var delimiter = contactParagraph.createRun();
+                        delimiter.setText(DELIMITER);
+                        return delimiter;
+                    })
+                    .withRuns(allContactInfo.stream().map(nfo -> () -> {
+                        final var contactInfoRun = contactParagraph.createRun();
+                        contactInfoRun.setText(nfo);
+                        return contactInfoRun;
+                    }))
+                    .withRuns(allLinks.stream().map(link -> () -> {
+                        final var record = new DocumentLinkRecord(document(), link);
+                        return record.writeAbbreviated(contactParagraph);
+                    })).build().write();
 
         }
 
@@ -214,60 +239,42 @@ public class DocxResumeFormatter implements ResumeFormatter {
             final var headline = resume().getHeadline();
             final var headlineTitle = headline == null  ? null : headline.getTitle();
             final var headlineSummary = headline == null  ? null : headline.getSummary();
-            final var headlineSkills = headline == null  ? null : headline.getSkills();
+            final var headlineSkills = headline == null  ? List.<String>of() : headline.getSkills();
 
-            final var titleParagraph = createNotSplittingParagraph();
+            final var titleParagraph = createStandardParagraph();
             titleParagraph.setAlignment(CENTER);
 
             var run = titleParagraph.createRun();
             run.setBold(HEADLINE_BOLD);
             run.setFontSize(HEADLINE_SIZE);
             run.setText(headlineTitle == null ? "<<Your Title>>" : headlineTitle);
-            run.addBreak();
 
-            final var summaryParagraph = createNotSplittingParagraph();
+            final var summaryParagraph = createStandardParagraph();
+            summaryParagraph.setAlignment(BOTH);
             run = summaryParagraph.createRun();
             run.setText(headlineSummary == null ? "<<Your Summary>>" : headlineSummary);
 
-            if (headlineSkills != null && !headlineSkills.isEmpty()) {
+            final var skillsHeadlineParagraph = createStandardParagraph(SKILLS_SUMMARY_BACKGROUND_COLOR);
+            skillsHeadlineParagraph.setAlignment(CENTER);
+            run = skillsHeadlineParagraph.createRun();
+            run.setBold(HEADLINE_BOLD);
+            run.setFontSize(HEADLINE_SIZE);
+            run.setText(SKILLS_HEADLINE);
 
-                final var skillsHeadlineParagraph = createNotSplittingParagraph();
-                skillsHeadlineParagraph.setAlignment(CENTER);
-                run.setBold(HEADLINE_BOLD);
-                run.setFontSize(HEADLINE_SIZE);
-                run.setText(SKILLS_HEADLINE);
+            final var skillsParagraph = createStandardParagraph();
+            skillsParagraph.setAlignment(CENTER);
 
-                final var skillsListParagraph = writeSplitList(headlineSkills, (skill, p) -> {
-                    final var skillRun = p.createRun();
-                    skillRun.setText(skill);
-                    return skillRun;
-                });
-
-            }
-
-        }
-
-        private <T> XWPFParagraph writeSplitList(
-                final Iterable<T> listContents,
-                final BiFunction<T, XWPFParagraph, XWPFRun> formatterFunction) {
-
-            final var iterator = listContents.iterator();
-            final var paragraph = createNotSplittingParagraph();
-
-            while (iterator.hasNext()) {
-
-                final var item = iterator.next();
-                formatterFunction.apply(item, paragraph);
-
-                if (iterator.hasNext()) {
-                    final var delimiter = paragraph.createRun();
-                    delimiter.setText(DELIMITER);
-                }
-
-            }
-
-            paragraph.createRun().addBreak();
-            return paragraph;
+            new SplitList.Builder()
+                    .withDelimiter(() -> {
+                        final var delimiter = skillsParagraph.createRun();
+                        delimiter.setText(DELIMITER);
+                        return delimiter;
+                    })
+                    .withRuns(headlineSkills.stream().map(skill -> () -> {
+                        final var skillRun = skillsParagraph.createRun();
+                        skillRun.setText(skill);
+                        return skillRun;
+                    })).build().write();
 
         }
 
@@ -278,11 +285,9 @@ public class DocxResumeFormatter implements ResumeFormatter {
                     .stream()
                     .filter(Objects::nonNull)
                     .peek(position -> {
-
                         if (position.getPositionType() == null) {
                             position.setPositionType(EMPLOYEE);
                         }
-
                     })
                     .reduce(new TreeMap<PositionType, List<Position>>(), (map, position) -> {
                         map.computeIfAbsent(position.getPositionType(), k -> new ArrayList<>()).add(position);
@@ -297,12 +302,13 @@ public class DocxResumeFormatter implements ResumeFormatter {
                 final PositionType type,
                 final List<Position> positions) {
 
-            final var headerParagraph = createNotSplittingParagraph();
+            final var headerParagraph = createStandardParagraph();
+            headerParagraph.setAlignment(CENTER);
+
             final var headerRun = headerParagraph.createRun();
             headerRun.setBold(HEADLINE_BOLD);
             headerRun.setFontSize(HEADLINE_SIZE);
             headerRun.setText(String.format("%s Experience", type.getDisplayText()));
-            headerRun.addBreak();
 
             writePositions(positions);
 
@@ -311,17 +317,14 @@ public class DocxResumeFormatter implements ResumeFormatter {
         private void writePositions(final List<Position> positions) {
             positions.forEach(position -> {
 
-                final var positionHeader = createNotSplittingParagraph();
-                var run = positionHeader.createRun();
+                final var headlineItems = new ArrayList<String>();
+                headlineItems.add(position.getCompany() == null ? "<<Company>>" : position.getCompany());
 
-                run.setBold(HEADLINE_BOLD);
-                run.setText(String.format("%s%s%s%s%s",
-                        position.getCompany(),
-                        DELIMITER,
-                        position.getTitle(),
-                        DELIMITER,
-                        position.getLocation()));
-                run.addBreak();
+                if (position.getTitle() != null && !position.getTitle().isEmpty())
+                    headlineItems.add(position.getTitle());
+
+                if (position.getLocation() != null && !position.getLocation().isBlank())
+                    headlineItems.add(position.getLocation());
 
                 final var startDate = position.getStartDate() == null
                         ? "<<Start Date>>"
@@ -331,9 +334,24 @@ public class DocxResumeFormatter implements ResumeFormatter {
                         ? "Present" :
                         POSITION_DATE_FORMAT.format(position.getEndDate());
 
-                run = positionHeader.createRun();
-                run.setText(String.format("%s to %s", startDate, endDate));
-                run.addBreak();
+                headlineItems.add(String.format("%s to %s", startDate, endDate));
+
+                final var headlineParagraph = createStandardParagraph();
+                headlineParagraph.setAlignment(LEFT);
+
+                new SplitList.Builder()
+                        .withDelimiter(() -> {
+                            final var run = headlineParagraph.createRun();
+                            run.setBold(HEADLINE_BOLD);
+                            run.setText(DELIMITER);
+                            return run;
+                        })
+                        .withRuns(headlineItems.stream().map(item -> () -> {
+                            final var run = headlineParagraph.createRun();
+                            run.setText(item);
+                            run.setBold(HEADLINE_BOLD);
+                            return run;
+                        })).build().write();
 
                 final var accomplishments = position.getAccomplishmentStatements();
 
@@ -343,7 +361,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
                         .filter(not(String::isBlank))
                         .forEach(accomplishment -> {
 
-                            final var accomplishmentParagraph = createNotSplittingParagraph();
+                            final var accomplishmentParagraph = document().createParagraph();
                             accomplishmentParagraph.setNumID(numberingId());
                             accomplishmentParagraph.setNumILvl(BigInteger.ZERO);
 
@@ -357,14 +375,13 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
         private void writeEducation() {
 
-            final var headerParagraph = createNotSplittingParagraph();
+            final var headerParagraph = createStandardParagraph();
             headerParagraph.setAlignment(CENTER);
 
             final var headerRun = headerParagraph.createRun();
             headerRun.setBold(HEADLINE_BOLD);
             headerRun.setFontSize(HEADLINE_SIZE);
             headerRun.setText("Education");
-            headerRun.addBreak();
 
             final var educations = resume().getEducations();
             (educations == null ? List.<Education>of() : educations)
@@ -372,7 +389,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
                     .filter(Objects::nonNull)
                     .forEach(education -> {
 
-                        final var educationParagraph = createNotSplittingParagraph();
+                        final var educationParagraph = createStandardParagraph();
                         educationParagraph.setNumID(numberingId());
                         educationParagraph.setNumILvl(BigInteger.ZERO);
 
@@ -391,6 +408,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
                         ));
 
                     });
+
         }
 
     }
