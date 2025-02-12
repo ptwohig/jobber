@@ -31,6 +31,8 @@ public class AnalyzersModule extends PrivateModule {
         return new OpenAiChatModel.OpenAiChatModelBuilder()
                 .apiKey(apiKey)
                 .modelName(model)
+                .logRequests(true)
+                .logResponses(true)
                 .build();
     }
 

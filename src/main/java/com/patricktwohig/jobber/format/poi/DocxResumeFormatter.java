@@ -28,7 +28,7 @@ import static org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER;
 import static org.openxmlformats.schemas.wordprocessingml.x2006.main.STNumberFormat.BULLET;
 import static org.openxmlformats.schemas.wordprocessingml.x2006.main.STStyleType.PARAGRAPH;
 
-public class PoiResumeFormatter implements ResumeFormatter {
+public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final String DELIMITER = " | ";
 

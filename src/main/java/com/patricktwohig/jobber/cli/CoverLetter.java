@@ -10,5 +10,4 @@ import picocli.CommandLine.HelpCommand;
         helpCommand = true,
         subcommands = {HelpCommand.class, AnalyzeCoverLetter.class, AuthorCoverLetter.class}
 )
-public class CoverLetter {
-}
+public class CoverLetter {}

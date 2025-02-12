@@ -14,7 +14,7 @@ import java.util.Objects;
 
 import static java.util.function.Predicate.not;
 
-public class PoiCoverLetterFormatter implements CoverLetterFormatter {
+public class DocxCoverLetterFormatter implements CoverLetterFormatter {
 
     private static final boolean HEADLINE_BOLD = true;
 

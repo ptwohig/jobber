@@ -1,7 +1,10 @@
 package com.patricktwohig.jobber.cli;
 
+import com.google.inject.Module;
 import picocli.CommandLine;
 import picocli.CommandLine.HelpCommand;
+
+import java.util.stream.Stream;
 
 @CommandLine.Command(
         name = "resume",
@@ -9,13 +12,14 @@ import picocli.CommandLine.HelpCommand;
         description = "Performs resume/cv analysis tasks.",
         subcommands = {HelpCommand.class, AnalyzeResume.class, AuthorResume.class}
 )
-public class Resume {
+public class Resume implements HasModules {
 
     @CommandLine.ParentCommand
-    private Main main;
+    private HasModules main;
 
-    public Main getMain() {
-        return main;
+    @Override
+    public Stream<Module> get() {
+        return main.get();
     }
 
 }

@@ -13,11 +13,25 @@ public interface ResumeAuthor {
 
     @UserMessage(
             "Write a resume for the supplied job description at the supplied URL. Use the supplied resume as a " +
-            "base for the generated resume. Ensure that the resume's title matches that of the job description as " +
-            "well as ensure that the resume contains specific keywords mentioned in job description." +
-            "\n" +
-            "Base Resume - {{baseResume}}\n" +
-            "Job Description URL - {{jobDescriptionUrl}}\n"
+                    "base for the generated resume. Ensure that the resume's title matches that of the job " +
+                    "description as well as ensure that the resume contains specific keywords mentioned in job " +
+                    "description." +
+                    "\n" +
+                    "Base Resume - {{baseResume}}\n" +
+                    "Job Description URL - {{jobDescriptionUrl}}\n"
+    )
+    Resume tuneResumeForPublicJobDescriptionUrl(
+            @V("baseResume") String baseResume,
+            @V("jobDescriptionUrl") String jobDescriptionUrl
+    );
+
+    @UserMessage(
+            "Write a resume for the supplied job description at the supplied URL. Use the supplied resume as a " +
+                "base for the generated resume. Ensure that the resume's title matches that of the job description " +
+                "as well as ensure that the resume contains specific keywords mentioned in job description." +
+                "\n" +
+                "Base Resume - {{baseResume}}\n" +
+                "Job Description URL - {{jobDescriptionUrl}}\n"
     )
     Resume tuneResumeForPublicJobDescriptionUrl(
             @V("baseResume") Resume baseResume,
