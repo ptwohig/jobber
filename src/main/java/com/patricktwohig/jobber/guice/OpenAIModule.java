@@ -8,20 +8,16 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import jakarta.inject.Named;
 
-import static com.patricktwohig.jobber.ai.OpenAI.OPENAI_API_KEY;
-import static com.patricktwohig.jobber.ai.OpenAI.OPENAI_MODEL;
+import java.time.Duration;
+
+import static com.patricktwohig.jobber.ai.Configuration.*;
 
 public class OpenAIModule extends PrivateModule {
 
     @Override
     protected void configure() {
 
-        expose(EmbeddingModel.class);
         expose(ChatLanguageModel.class);
-
-        bind(EmbeddingModel.class)
-                .to(OpenAiEmbeddingModel.class)
-                .asEagerSingleton();
 
         bind(ChatLanguageModel.class)
                 .to(OpenAiChatModel.class)
@@ -31,20 +27,17 @@ public class OpenAIModule extends PrivateModule {
 
     @Provides
     public OpenAiChatModel openAiChatModel(
+            @Named(API_TIMEOUT) long apiTimeout,
+            @Named(LOG_API_CALLS) boolean logApiCalls,
             @Named(OPENAI_MODEL) final String model,
             @Named(OPENAI_API_KEY) final String apiKey) {
+        final var duration = Duration.ofSeconds(apiTimeout);
         return new OpenAiChatModel.OpenAiChatModelBuilder()
                 .apiKey(apiKey)
-                .modelName(model)
-                .build();
-    }
-
-    @Provides
-    public OpenAiEmbeddingModel openAiEmbeddingModel(
-            @Named(OPENAI_MODEL) final String model,
-            @Named(OPENAI_API_KEY) final String apiKey) {
-        return OpenAiEmbeddingModel.builder()
-                .apiKey(apiKey)
+                .timeout(duration)
+                .strictJsonSchema(true)
+                .logRequests(logApiCalls)
+                .logResponses(logApiCalls)
                 .modelName(model)
                 .build();
     }

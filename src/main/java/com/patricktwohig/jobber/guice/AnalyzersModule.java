@@ -11,8 +11,8 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import jakarta.inject.Named;
 
-import static com.patricktwohig.jobber.ai.OpenAI.OPENAI_API_KEY;
-import static com.patricktwohig.jobber.ai.OpenAI.OPENAI_MODEL;
+import static com.patricktwohig.jobber.ai.Configuration.OPENAI_API_KEY;
+import static com.patricktwohig.jobber.ai.Configuration.OPENAI_MODEL;
 
 public class AnalyzersModule extends PrivateModule {
 
@@ -22,18 +22,6 @@ public class AnalyzersModule extends PrivateModule {
         expose(ResumeAnalyst.class);
         expose(CoverLetterAuthor.class);
         expose(JobDescriptionAnalyst.class);
-    }
-
-    @Provides
-    public OpenAiChatModel openAiChatModel(
-            @Named(OPENAI_MODEL) final String model,
-            @Named(OPENAI_API_KEY) final String apiKey) {
-        return new OpenAiChatModel.OpenAiChatModelBuilder()
-                .apiKey(apiKey)
-                .modelName(model)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
     }
 
     @Provides

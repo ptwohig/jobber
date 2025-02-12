@@ -1,7 +1,7 @@
 package com.patricktwohig.jobber.cli;
 
 import com.google.inject.Module;
-import com.patricktwohig.jobber.ai.OpenAI;
+import com.patricktwohig.jobber.ai.Configuration;
 import com.patricktwohig.jobber.guice.AnalyzersModule;
 import com.patricktwohig.jobber.guice.ConfigurationModule;
 import com.patricktwohig.jobber.guice.OpenAIModule;
@@ -19,6 +19,20 @@ import static com.patricktwohig.jobber.cli.Format.TEXT;
         subcommands = {HelpCommand.class, ResumeCommands.class, CoverLetterCommands.class}
 )
 public class Main implements HasModules {
+
+    @CommandLine.Option(
+            names = {"-to", "--api-timeout"},
+            description = "The API Call timeout. Expressed in seconds.",
+            defaultValue = "60"
+    )
+    private InputLine apiTimeout;
+
+    @CommandLine.Option(
+            names = {"-log", "--log-api-calls"},
+            description = "Logs all API Calls for the purposes of debugging.",
+            defaultValue = "false"
+    )
+    private InputLine logApiCalls;
 
     @CommandLine.Option(
             names = {"--openai-model"},
@@ -39,8 +53,10 @@ public class Main implements HasModules {
                 new OpenAIModule(),
                 new AnalyzersModule(),
                 new ConfigurationModule()
-                        .add(OpenAI.OPENAI_MODEL, openAIModel.readInputString(TEXT))
-                        .add(OpenAI.OPENAI_API_KEY, openAIApiKey.readInputString(TEXT))
+                        .add(Configuration.API_TIMEOUT, apiTimeout.readInputString(TEXT))
+                        .add(Configuration.LOG_API_CALLS, logApiCalls.readInputString(TEXT))
+                        .add(Configuration.OPENAI_MODEL, openAIModel.readInputString(TEXT))
+                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.readInputString(TEXT))
         );
     }
 
