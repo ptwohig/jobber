@@ -47,7 +47,7 @@ public class Resume {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Resume{");
+        final StringBuilder sb = new StringBuilder("ResumeCommands{");
         sb.append("contact=").append(contact);
         sb.append(", headline=").append(headline);
         sb.append(", positions=").append(positions);

@@ -10,9 +10,9 @@ import java.util.stream.Stream;
         name = "resume",
         aliases = "cv",
         description = "Performs resume/cv analysis tasks.",
-        subcommands = {HelpCommand.class, AnalyzeResume.class, AuthorResume.class}
+        subcommands = {HelpCommand.class, AnalyzeResume.class, AuthorResume.class, FormatResume.class}
 )
-public class Resume implements HasModules {
+public class ResumeCommands implements HasModules {
 
     @CommandLine.ParentCommand
     private HasModules main;

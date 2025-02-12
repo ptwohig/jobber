@@ -25,7 +25,7 @@ public interface JobDescriptionAnalyst {
     )
     @UserMessage(
             "Job Description - {{jobDescriptionUrl}}\n" +
-            "Job Seeker Resume - {{jobSeekerResume}}\n" +
+            "Job Seeker ResumeCommands - {{jobSeekerResume}}\n" +
             "Company Website URL - {{companyWebsiteUrl}}\n"
     )
     JobDescriptionAnalysis analyzePublicJobDescriptionUrl(

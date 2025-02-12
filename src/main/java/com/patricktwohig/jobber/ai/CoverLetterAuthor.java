@@ -22,7 +22,7 @@ public interface CoverLetterAuthor {
                     "expressing gratitude for the consideration."
     )
     @UserMessage(
-            "Job Seeker's Resume - {{jobSeekersResume}}\n" +
+            "Job Seeker's ResumeCommands - {{jobSeekersResume}}\n" +
                     "Base Cover Letter - {{baseCoverLetter}}\n" +
                     "Job Description URL - {{jobDescriptionUrl}}\n" +
                     "Company Website URL - {{companyWebsiteUrl}}\n"
@@ -45,7 +45,7 @@ public interface CoverLetterAuthor {
                     "expressing gratitude for the consideration."
     )
     @UserMessage(
-            "Job Seeker's Resume - {{jobSeekersResume}}\n" +
+            "Job Seeker's ResumeCommands - {{jobSeekersResume}}\n" +
                 "Base Cover Letter - {{baseCoverLetter}}\n" +
                 "Job Description URL - {{jobDescriptionUrl}}\n" +
                 "Company Website URL - {{companyWebsiteUrl}}\n"

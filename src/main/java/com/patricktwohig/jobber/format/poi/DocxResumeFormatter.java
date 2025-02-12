@@ -50,7 +50,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final String BULLET_TEXT = "•";
 
-    private static final int BULLET_INDENTATION = 180;
+    private static final int BULLET_INDENTATION = 720;
 
     private static final String SKILLS_HEADLINE = "Core Competencies";
 
@@ -73,14 +73,21 @@ public class DocxResumeFormatter implements ResumeFormatter {
             BigInteger numberingId) implements Closeable {
 
         private ResumeDocument {
-            generateNumberingId();
+            numberingId = generateNumberingId(document, numberingId);
         }
 
-        private void generateNumberingId() {
+        private BigInteger generateNumberingId(final XWPFDocument document, final BigInteger baseNumberingId) {
 
-            final var numbering = document().createNumbering();
+            final var numbering = document.createNumbering();
+
+            final var numberingId = numbering.getAbstractNums().stream()
+                    .map(n -> n.getAbstractNum().getAbstractNumId())
+                    .max(BigInteger::compareTo)
+                    .map(n -> n.add(BigInteger.ONE))
+                    .orElse(baseNumberingId);
+
             final var ctAbstractNum = CTAbstractNum.Factory.newInstance();
-            ctAbstractNum.setAbstractNumId(numberingId());
+            ctAbstractNum.setAbstractNumId(numberingId);
 
             final var level = ctAbstractNum.addNewLvl();
             level.setIlvl(BigInteger.ZERO);
@@ -90,6 +97,8 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
             final var abstractNum = new XWPFAbstractNum(ctAbstractNum, numbering);
             numbering.addAbstractNum(abstractNum);
+
+            return numberingId;
 
         }
 
@@ -118,7 +127,11 @@ public class DocxResumeFormatter implements ResumeFormatter {
             defaultStyle.setStyleId("Normal");
             defaultStyle.setType(PARAGRAPH);
 
-            final var fontSize = defaultStyle.getRPr().addNewSz();
+            final var rPr = defaultStyle.isSetRPr()
+                    ? defaultStyle.getRPr()
+                    : defaultStyle.addNewRPr();
+
+            final var fontSize = rPr.addNewSz();
             fontSize.setVal(BigInteger.valueOf(DEFAULT_FONT_SIZE * 2));
 
         }
@@ -143,7 +156,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
         private XWPFParagraph createNotSplittingParagraph() {
             final var paragraph = document().createParagraph();
             final var ctp = paragraph.getCTP();
-            final var ppr = ctp.getPPr();
+            final var ppr = ctp.isSetPPr() ? ctp.getPPr() : ctp.addNewPPr();
             final var keepLines = (ppr.isSetKeepLines()) ? ppr.getKeepLines() : ppr.addNewKeepLines();
             keepLines.setVal(STOnOff1.ON);
             paragraph.setSpacingAfter(PARAGRAPH_SPACING);

@@ -11,12 +11,12 @@ import picocli.CommandLine.HelpCommand;
 
 import java.util.stream.Stream;
 
-import static com.patricktwohig.jobber.cli.InputLine.Scheme.TEXT;
+import static com.patricktwohig.jobber.cli.Format.TEXT;
 
 @Command(
         name = "jobber",
         description = "Performs AI-based resume, cover letter, job description analysis.",
-        subcommands = {HelpCommand.class, Resume.class, CoverLetter.class}
+        subcommands = {HelpCommand.class, ResumeCommands.class, CoverLetterCommands.class}
 )
 public class Main implements HasModules {
 

@@ -17,7 +17,7 @@ public interface ResumeAuthor {
                     "description as well as ensure that the resume contains specific keywords mentioned in job " +
                     "description." +
                     "\n" +
-                    "Base Resume - {{baseResume}}\n" +
+                    "Base ResumeCommands - {{baseResume}}\n" +
                     "Job Description URL - {{jobDescriptionUrl}}\n"
     )
     Resume tuneResumeForPublicJobDescriptionUrl(
@@ -30,7 +30,7 @@ public interface ResumeAuthor {
                 "base for the generated resume. Ensure that the resume's title matches that of the job description " +
                 "as well as ensure that the resume contains specific keywords mentioned in job description." +
                 "\n" +
-                "Base Resume - {{baseResume}}\n" +
+                "Base ResumeCommands - {{baseResume}}\n" +
                 "Job Description URL - {{jobDescriptionUrl}}\n"
     )
     Resume tuneResumeForPublicJobDescriptionUrl(

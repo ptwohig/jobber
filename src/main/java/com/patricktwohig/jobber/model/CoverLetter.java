@@ -47,7 +47,7 @@ public class CoverLetter {
 
     @Override
     public String toString() {
-        return "CoverLetter{" +
+        return "CoverLetterCommands{" +
                 "sender=" + sender +
                 ", employer=" + employer +
                 ", reciepient=" + recipient +
