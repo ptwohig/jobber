@@ -1,20 +1,19 @@
 package com.patricktwohig.jobber.cli;
 
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.ResumeAuthor;
 import com.patricktwohig.jobber.format.Postprocessor;
 import com.patricktwohig.jobber.format.ResumeFormatter;
-import com.patricktwohig.jobber.guice.DocxFormatModule;
-import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
-import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
-import com.patricktwohig.jobber.guice.JsonFormatModule;
+import com.patricktwohig.jobber.guice.*;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.input.PageInput;
 import com.patricktwohig.jobber.model.Resume;
 import picocli.CommandLine;
 
 import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
@@ -59,17 +58,17 @@ public class AuthorResume implements Callable<Integer>, HasModules {
         private OutputLine output;
         @CommandLine.Option(
                 names = {"-kp", "--keep-properties"},
-                description = "Specifies properties of the original document to keep",
-                defaultValue = ""
+                description = "Specifies properties of the original document to keep"
         )
-        private Set<String> keepProperties;
+        private Set<String> keepProperties = Set.of();
 
         @CommandLine.Option(
                 names = {"-op", "--omit-properties"},
-                description = "Specifies the properties of the new document to omit entirely.",
-                defaultValue = ""
+                description = "Specifies the properties of the new document to omit entirely."
         )
-        private Set<String> omitProperties;
+        private Set<String> omitProperties = Set.of();
+
+        private Injector injector;
 
         @Override
         public Stream<Module> get() {
@@ -85,7 +84,7 @@ public class AuthorResume implements Callable<Integer>, HasModules {
                         default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
                 };
 
-                return Stream.of(formatModule, documentInputModule, new HtmlUnitPageInputModule());
+                return Stream.of(formatModule, documentInputModule, new HtmlUnitPageInputModule(), new JacksonPostprocessorModule());
 
         }
 
@@ -93,7 +92,8 @@ public class AuthorResume implements Callable<Integer>, HasModules {
         public Integer call() throws Exception {
 
                 final var modules = concat(parent).loadModules();
-                final var injector = Guice.createInjector(modules);
+                injector = Guice.createInjector(modules);
+
                 final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
                 final var documentInput = injector.getInstance(DocumentInput.class);
                 final var resumeFormatter = injector.getInstance(ResumeFormatter.class);
@@ -105,26 +105,17 @@ public class AuthorResume implements Callable<Integer>, HasModules {
                 try (var is = input.readInputStream(JSON)) {
 
                         final var resume = documentInput.read(Resume.class, is);
-
-                        final String jobDescriptionText;
-
-                        if (jobDescription != null) {
-                                jobDescriptionText = jobDescription.readInputString(TEXT);
-                        } else if (jobDescriptionUrl != null) {
-                                final var pageInput = injector.getInstance(PageInput.class);
-                                final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(VAL);
-                                jobDescriptionText = pageInput.loadPage(jobDescriptionUrl);
-                        } else {
-                                throw new CliException(INVALID_PARAMETER);
-                        }
+                        final var jobDescriptionText = readJobDescription();
 
                         final var authoredResumed = resumeAuthor.tuneResumeForPublicJobDescriptionUrl(
                                 resume,
                                 jobDescriptionText
                         );
 
+                        final var postProcessedResume = postprocessor.apply(resume, authoredResumed);
+
                         try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
-                                resumeFormatter.format(authoredResumed, os);
+                                resumeFormatter.format(postProcessedResume, os);
                         }
 
                 }
@@ -132,5 +123,20 @@ public class AuthorResume implements Callable<Integer>, HasModules {
                 return 0;
 
         }
+
+
+        private String readJobDescription() throws IOException {
+                if (jobDescriptionUrl != null) {
+                        final var pageInput = injector.getInstance(PageInput.class);
+                        final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(VAL);
+                        return pageInput.loadPage(jobDescriptionUrl);
+                } else if (jobDescription != null) {
+                        System.out.println("Reading Job Description.");
+                        return jobDescription.readInputString(TEXT);
+                } else {
+                        throw new CliException(INVALID_PARAMETER);
+                }
+        }
+
 
 }

@@ -6,10 +6,7 @@ import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.CoverLetterAuthor;
 import com.patricktwohig.jobber.format.CoverLetterFormatter;
 import com.patricktwohig.jobber.format.Postprocessor;
-import com.patricktwohig.jobber.guice.DocxFormatModule;
-import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
-import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
-import com.patricktwohig.jobber.guice.JsonFormatModule;
+import com.patricktwohig.jobber.guice.*;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.input.PageInput;
 import com.patricktwohig.jobber.model.CoverLetter;
@@ -71,17 +68,15 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
 
         @CommandLine.Option(
                 names = {"-kp", "--keep-properties"},
-                description = "Specifies properties of the original document to keep",
-                defaultValue = ""
+                description = "Specifies properties of the original document to keep"
         )
-        private Set<String> keepProperties;
+        private Set<String> keepProperties = Set.of();
 
         @CommandLine.Option(
                 names = {"-op", "--omit-properties"},
-                description = "Specifies the properties of the new document to omit entirely.",
-                defaultValue = ""
+                description = "Specifies the properties of the new document to omit entirely."
         )
-        private Set<String> omitProperties;
+        private Set<String> omitProperties = Set.of();
 
         private Injector injector;
 
@@ -103,7 +98,12 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                         throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
                 }
 
-                return Stream.of(formatModule, documentInputModule, new HtmlUnitPageInputModule());
+                return Stream.of(
+                        formatModule,
+                        documentInputModule,
+                        new HtmlUnitPageInputModule(),
+                        new JacksonPostprocessorModule()
+                );
 
         }
 
@@ -122,7 +122,7 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                         .build();
 
                 try (var resumeInputStream = inputResume.readInputStream(JSON);
-                     var coverLetterInputStream = inputResume.readInputStream(JSON)) {
+                     var coverLetterInputStream = inputCoverLetter.readInputStream(JSON)) {
 
                         final var resume = documentInput.read(Resume.class, resumeInputStream);
                         final var coverLetter = documentInput.read(CoverLetter.class, coverLetterInputStream);

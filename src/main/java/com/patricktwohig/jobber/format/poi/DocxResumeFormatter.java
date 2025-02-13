@@ -64,6 +64,10 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final String SKILLS_SUMMARY_BACKGROUND_COLOR = "F5C4FF";
 
+    private static final int HORIZONTAL_RULE_LEFT = 450;
+
+    private static final int HORIZONTAL_RULE_RIGHT = 450;
+
     @Override
     public void format(final Resume resume, final OutputStream outputStream) throws IOException {
         try (final var document = new ResumeDocument(new XWPFDocument(), resume, BigInteger.ZERO)) {
@@ -194,8 +198,8 @@ public class DocxResumeFormatter implements ResumeFormatter {
             new HorizontalRule.Builder()
                     .withDocument(document())
                     .withBorder(Borders.SINGLE)
-                    .withLeftIndent(450)
-                    .withRightIndent(450)
+                    .withLeftIndent(HORIZONTAL_RULE_LEFT)
+                    .withRightIndent(HORIZONTAL_RULE_RIGHT)
                     .buildAndWrite();
         }
 

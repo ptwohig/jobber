@@ -3,6 +3,8 @@ package com.patricktwohig.jobber.format.poi;
 import com.patricktwohig.jobber.format.CoverLetterFormatter;
 import com.patricktwohig.jobber.model.CoverLetter;
 import com.patricktwohig.jobber.model.Link;
+import org.apache.poi.xwpf.usermodel.Borders;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.function.Predicate.not;
+import static org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER;
 
 public class DocxCoverLetterFormatter implements CoverLetterFormatter {
 
@@ -21,6 +24,10 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
     private static final int HEADLINE_FONT_SIZE = 14;
 
     private static final int PARAGRAPH_SPACING = 200;
+
+    private static final int HORIZONTAL_RULE_LEFT = 800;
+
+    private static final int HORIZONTAL_RULE_RIGHT = 800;
 
     @Override
     public void format(final CoverLetter coverLetter, final OutputStream outputStream) throws IOException {
@@ -37,12 +44,20 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
         }
 
         public void write(final OutputStream outputStream) throws IOException {
-            writePersonalHeadline();
-            writeCompanyHeader();
+
+            if (coverLetter().getSender() != null) {
+                writePersonalHeadline();
+            }
+
+            if (coverLetter().getEmployer() != null) {
+                writeCompanyHeader();
+            }
+
             writeSalutation();
             writeParagraphs();
             writeSignature();
             document().write(outputStream);
+
         }
 
         private XWPFParagraph createParagraph() {
@@ -50,6 +65,16 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
             paragraph.setSpacingAfter(PARAGRAPH_SPACING);
             return paragraph;
         }
+
+        private void createHorizontalRule() {
+            new HorizontalRule.Builder()
+                    .withDocument(document())
+                    .withBorder(Borders.SINGLE)
+                    .withLeftIndent(HORIZONTAL_RULE_LEFT)
+                    .withRightIndent(HORIZONTAL_RULE_RIGHT)
+                    .buildAndWrite();
+        }
+
 
         private void writePersonalHeadline() {
 
@@ -60,6 +85,7 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
             final var senderLinks = sender == null ? null : sender.getLinks();
 
             final var headline = createParagraph();
+            headline.setAlignment(CENTER);
 
             var run = headline.createRun();
             run.setBold(HEADLINE_BOLD);
@@ -80,13 +106,14 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
                     .filter(Objects::nonNull)
                     .filter(link -> link.getUrl() != null)
                     .map(link -> new DocumentLinkRecord(document(), link))
-                    .forEach(link -> link.writeFullUrl(headline).addBreak());
+                    .forEach(link -> link.writeFullUrl(headline));
 
         }
 
         private void writeCompanyHeader() {
 
             final var headline = createParagraph();
+            headline.setAlignment(CENTER);
 
             final var employer = coverLetter.getEmployer();
             final var employerName = employer == null ? null : employer.getCompanyName();
