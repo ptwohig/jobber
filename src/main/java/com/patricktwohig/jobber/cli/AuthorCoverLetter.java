@@ -5,9 +5,9 @@ import picocli.CommandLine;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(
-        name = "author-cover-letter",
-        description = "Analyzes the candidates cover letter.",
-        helpCommand = true
+        name = "author",
+        aliases = {"write"},
+        description = "Analyzes the candidates cover letter."
 )
 public class AuthorCoverLetter implements Callable<Integer> {
 

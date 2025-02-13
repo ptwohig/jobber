@@ -2,10 +2,7 @@ package com.patricktwohig.jobber.guice;
 
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
-import com.patricktwohig.jobber.ai.CoverLetterAuthor;
-import com.patricktwohig.jobber.ai.JobDescriptionAnalyst;
-import com.patricktwohig.jobber.ai.ResumeAnalyst;
-import com.patricktwohig.jobber.ai.ResumeAuthor;
+import com.patricktwohig.jobber.ai.*;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
@@ -21,6 +18,7 @@ public class AnalyzersModule extends PrivateModule {
         expose(ResumeAuthor.class);
         expose(ResumeAnalyst.class);
         expose(CoverLetterAuthor.class);
+        expose(CoverLetterAnalyst.class);
         expose(JobDescriptionAnalyst.class);
     }
 
@@ -37,6 +35,11 @@ public class AnalyzersModule extends PrivateModule {
     @Provides
     public CoverLetterAuthor newCoverLetterAuthor(final ChatLanguageModel model) {
         return AiServices.create(CoverLetterAuthor.class, model);
+    }
+
+    @Provides
+    public CoverLetterAnalyst newCoverLetterAnalyst(final ChatLanguageModel model) {
+        return AiServices.create(CoverLetterAnalyst.class, model);
     }
 
     @Provides

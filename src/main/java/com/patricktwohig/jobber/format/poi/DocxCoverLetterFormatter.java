@@ -80,7 +80,7 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
                     .filter(Objects::nonNull)
                     .filter(link -> link.getUrl() != null)
                     .map(link -> new DocumentLinkRecord(document(), link))
-                    .forEach(link -> link.writeFullUrl(headline));
+                    .forEach(link -> link.writeFullUrl(headline).addBreak());
 
         }
 
@@ -118,8 +118,7 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
             salutation.setSpacingAfter(PARAGRAPH_SPACING);
 
             final var run = salutation.createRun();
-            run.setText(String.format("Dear %s;", recipientName == null ? "<<Hiring Manager>>" : recipientName));
-            run.addBreak();
+            run.setText(String.format("Dear %s;", recipientName == null ? "Hiring Manager;" : recipientName));
 
         }
 
@@ -138,7 +137,6 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
                         final var paragraph = createParagraph();
                         final var paragraphText = paragraph.createRun();
                         paragraphText.setText(bodyParagraph);
-                        paragraphText.addBreak();
                     });
 
         }

@@ -18,7 +18,7 @@ public record DocumentLinkRecord(XWPFDocument document, Link link) {
     }
 
     public XWPFRun writeFullUrl(final XWPFParagraph paragraph) {
-        final var linkText = format("\uD83D\uDD17 - %s", link.getUrl());
+        final var linkText = format(link.getUrl());
         final var run = paragraph.createHyperlinkRun(link().getUrl());
         run.setText(linkText);
         run.setColor("0000FF");

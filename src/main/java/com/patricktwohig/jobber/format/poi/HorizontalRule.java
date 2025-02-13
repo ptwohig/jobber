@@ -1,9 +1,7 @@
 package com.patricktwohig.jobber.format.poi;
 
 
-import org.apache.poi.wp.usermodel.Paragraph;
 import org.apache.poi.xwpf.usermodel.Borders;
-import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 

@@ -28,14 +28,14 @@ public class FormatResume implements HasModules, Callable<Integer> {
 
     @CommandLine.Option(
             names = {"-i", "--input"},
-            description = "The resume to read in (MS Word DOCX Format).",
+            description = "The resume to read in from structured format.",
             required = true
     )
     private InputLine input;
 
     @CommandLine.Option(
             names = {"-o", "--output"},
-            description = "The resume output file (in structured JSON).",
+            description = "The resume output file.",
             required = true
     )
     private OutputLine output;

@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 @CommandLine.Command(
         name = "resume",
-        aliases = "cv",
+        aliases = {"cv", "res"},
         description = "Performs resume/cv analysis tasks.",
         subcommands = {HelpCommand.class, AnalyzeResume.class, AuthorResume.class, FormatResume.class}
 )
