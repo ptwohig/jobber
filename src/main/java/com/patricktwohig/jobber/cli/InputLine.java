@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-public record InputLine(Format format, String input, Charset charset) {
+public record InputLine(Format format, String input, Charset charset) implements HasFormat {
 
     public static final String DELIMITER = ":";
 

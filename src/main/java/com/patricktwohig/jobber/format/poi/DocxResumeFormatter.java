@@ -117,13 +117,27 @@ public class DocxResumeFormatter implements ResumeFormatter {
         public void write(final OutputStream outputStream) throws IOException {
             setDocumentStyle();
             setDocumentMargins();
-            writeContactInformation();
-            writeHeadline();
-            createHorizontalRule();
-            writeExperience();
-            createHorizontalRule();
-            writeEducation();
+
+            if (resume().getContact() != null) {
+                writeContactInformation();
+            }
+
+            if (resume().getHeadline() != null) {
+                writeHeadline();
+                createHorizontalRule();
+            }
+
+            if (resume().getPositions() != null) {
+                writeExperience();
+                createHorizontalRule();
+            }
+
+            if (resume().getEducation() != null) {
+                writeEducation();
+            }
+
             document().write(outputStream);
+
         }
 
         private void setDocumentStyle() {
@@ -188,11 +202,11 @@ public class DocxResumeFormatter implements ResumeFormatter {
         private void writeContactInformation() {
 
             final var contact = resume().getContact();
-            final var contactName = contact == null  ? null : contact.getName();
-            final var contactEmail = contact == null ? null : contact.getEmail();
-            final var contactPhone = contact == null ? null : contact.getPhone();
-            final var contactLocation = contact == null ? null : contact.getLocation();
-            final var contactLinks = contact == null ? null : contact.getLinks();
+            final var contactName = contact.getName();
+            final var contactEmail = contact.getEmail();
+            final var contactPhone = contact.getPhone();
+            final var contactLocation = contact.getLocation();
+            final var contactLinks = contact.getLinks();
 
             final var allLinks = (contactLinks == null ? List.<Link>of() : contactLinks)
                     .stream()
@@ -237,9 +251,14 @@ public class DocxResumeFormatter implements ResumeFormatter {
         private void writeHeadline() {
 
             final var headline = resume().getHeadline();
-            final var headlineTitle = headline == null  ? null : headline.getTitle();
-            final var headlineSummary = headline == null  ? null : headline.getSummary();
-            final var headlineSkills = headline == null  ? List.<String>of() : headline.getSkills();
+
+            if (headline == null) {
+                return;
+            }
+
+            final var headlineTitle = headline.getTitle();
+            final var headlineSummary = headline.getSummary();
+            final var headlineSkills = headline.getSkills();
 
             final var titleParagraph = createStandardParagraph();
             titleParagraph.setAlignment(CENTER);
@@ -281,7 +300,8 @@ public class DocxResumeFormatter implements ResumeFormatter {
         private void writeExperience() {
 
             final var positions = resume().getPositions();
-            final var positionsByType = (positions == null ? List.<Position>of() : positions)
+
+            final var positionsByType = positions
                     .stream()
                     .filter(Objects::nonNull)
                     .peek(position -> {
@@ -391,7 +411,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
             headerRun.setFontSize(HEADLINE_SIZE);
             headerRun.setText("Education");
 
-            final var educations = resume().getEducations();
+            final var educations = resume().getEducation();
             (educations == null ? List.<Education>of() : educations)
                     .stream()
                     .filter(Objects::nonNull)

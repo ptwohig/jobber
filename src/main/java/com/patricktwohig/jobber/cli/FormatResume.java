@@ -2,9 +2,9 @@ package com.patricktwohig.jobber.cli;
 
 import com.google.inject.Guice;
 import com.google.inject.Module;
+import com.patricktwohig.jobber.format.Postprocessor;
 import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.guice.DocxFormatModule;
-import com.patricktwohig.jobber.guice.DocxTextExtractorModule;
 import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
 import com.patricktwohig.jobber.guice.JsonFormatModule;
 import com.patricktwohig.jobber.input.DocumentInput;
@@ -12,10 +12,10 @@ import com.patricktwohig.jobber.model.Resume;
 import picocli.CommandLine;
 
 import java.io.BufferedOutputStream;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import static com.patricktwohig.jobber.cli.Format.DOCX;
 import static com.patricktwohig.jobber.cli.Format.JSON;
 
 @CommandLine.Command(
@@ -40,20 +40,23 @@ public class FormatResume implements HasModules, Callable<Integer> {
     )
     private OutputLine output;
 
+    @CommandLine.Option(
+            names = {"-op", "--omit-properties"},
+            description = "Specifies the properties of the new document to omit entirely.",
+            defaultValue = ""
+    )
+    private Set<String> omitProperties;
+
     @Override
     public Stream<Module> get() {
 
-        final var outputFormat = output.format() == null ? JSON : output.format();
-
-        final var formatModule = switch (outputFormat) {
+        final var formatModule = switch (output.format(JSON)) {
             case JSON -> new JsonFormatModule();
             case DOCX -> new DocxFormatModule();
             default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
         };
 
-        final var documentInputFormat = input.format() == null ? JSON : input.format();
-
-        final var documentInputModule = switch (documentInputFormat) {
+        final var documentInputModule = switch (input.format(JSON)) {
             case JSON -> new JsonDocumentInputModule();
             default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
         };
@@ -73,11 +76,19 @@ public class FormatResume implements HasModules, Callable<Integer> {
         final var guice = Guice.createInjector(modules);
         final var documentInput = guice.getInstance(DocumentInput.class);
         final var resumeFormatter = guice.getInstance(ResumeFormatter.class);
+        final var postprocessor = guice.getInstance(Postprocessor.Factory.class).get(Resume.class)
+                .omit(omitProperties)
+                .build();
 
-        try (var is = input.readInputStream(JSON);
-             var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+        try (var is = input.readInputStream(JSON)) {
+
             final var resume = documentInput.read(Resume.class, is);
-            resumeFormatter.format(resume, os);
+            final var postprocessed = postprocessor.apply(resume, resume);
+
+            try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+                resumeFormatter.format(postprocessed, os);
+            }
+
         }
 
         return 0;

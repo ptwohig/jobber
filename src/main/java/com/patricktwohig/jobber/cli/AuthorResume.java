@@ -3,6 +3,7 @@ package com.patricktwohig.jobber.cli;
 import com.google.inject.Guice;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.ResumeAuthor;
+import com.patricktwohig.jobber.format.Postprocessor;
 import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.guice.DocxFormatModule;
 import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
@@ -14,6 +15,7 @@ import com.patricktwohig.jobber.model.Resume;
 import picocli.CommandLine;
 
 import java.io.BufferedOutputStream;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
@@ -55,21 +57,30 @@ public class AuthorResume implements Callable<Integer>, HasModules {
                 required = true
         )
         private OutputLine output;
+        @CommandLine.Option(
+                names = {"-kp", "--keep-properties"},
+                description = "Specifies properties of the original document to keep",
+                defaultValue = ""
+        )
+        private Set<String> keepProperties;
+
+        @CommandLine.Option(
+                names = {"-op", "--omit-properties"},
+                description = "Specifies the properties of the new document to omit entirely.",
+                defaultValue = ""
+        )
+        private Set<String> omitProperties;
 
         @Override
         public Stream<Module> get() {
 
-                final var outputFormat = output.format() == null ? JSON : output.format();
-
-                final var formatModule = switch (outputFormat) {
+                final var formatModule = switch (output.format(JSON)) {
                         case JSON -> new JsonFormatModule();
                         case DOCX -> new DocxFormatModule();
                         default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
                 };
 
-                final var documentInputFormat = input.format() == null ? JSON : input.format();
-
-                final var documentInputModule = switch (documentInputFormat) {
+                final var documentInputModule = switch (input.format(JSON)) {
                         case JSON -> new JsonDocumentInputModule();
                         default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
                 };
@@ -81,18 +92,17 @@ public class AuthorResume implements Callable<Integer>, HasModules {
         @Override
         public Integer call() throws Exception {
 
-                if (input.format() != null && !input.format().equals(JSON)) {
-                        throw new CliException("Invalid input format:" + input, 1);
-                }
-
                 final var modules = concat(parent).loadModules();
-                final var guice = Guice.createInjector(modules);
-                final var resumeAuthor = guice.getInstance(ResumeAuthor.class);
-                final var documentInput = guice.getInstance(DocumentInput.class);
-                final var resumeFormatter = guice.getInstance(ResumeFormatter.class);
+                final var injector = Guice.createInjector(modules);
+                final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
+                final var documentInput = injector.getInstance(DocumentInput.class);
+                final var resumeFormatter = injector.getInstance(ResumeFormatter.class);
+                final var postprocessor = injector.getInstance(Postprocessor.Factory.class).get(Resume.class)
+                        .omit(omitProperties)
+                        .keep(keepProperties)
+                        .build();
 
-                try (var is = input.readInputStream(JSON);
-                     var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+                try (var is = input.readInputStream(JSON)) {
 
                         final var resume = documentInput.read(Resume.class, is);
 
@@ -101,7 +111,7 @@ public class AuthorResume implements Callable<Integer>, HasModules {
                         if (jobDescription != null) {
                                 jobDescriptionText = jobDescription.readInputString(TEXT);
                         } else if (jobDescriptionUrl != null) {
-                                final var pageInput = guice.getInstance(PageInput.class);
+                                final var pageInput = injector.getInstance(PageInput.class);
                                 final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(VAL);
                                 jobDescriptionText = pageInput.loadPage(jobDescriptionUrl);
                         } else {
@@ -113,7 +123,9 @@ public class AuthorResume implements Callable<Integer>, HasModules {
                                 jobDescriptionText
                         );
 
-                        resumeFormatter.format(authoredResumed, os);
+                        try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+                                resumeFormatter.format(authoredResumed, os);
+                        }
 
                 }
 

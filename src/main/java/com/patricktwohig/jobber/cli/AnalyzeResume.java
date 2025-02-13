@@ -48,9 +48,7 @@ public class AnalyzeResume implements Callable<Integer>, HasModules {
     @Override
     public Stream<Module> get() {
 
-        final var outputFormat = output.format() == null ? JSON : output.format();
-
-        final var formatModule = switch (outputFormat) {
+        final var formatModule = switch (output.format(JSON)) {
             case JSON -> new JsonFormatModule();
             case DOCX -> new DocxFormatModule();
             default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
@@ -63,7 +61,7 @@ public class AnalyzeResume implements Callable<Integer>, HasModules {
     @Override
     public Integer call() throws Exception {
 
-        if (input.format() != null && !input.format().equals(DOCX)) {
+        if (!input.format(DOCX).equals(DOCX)) {
             throw new CliException(UNSUPPORTED_INPUT_FORMAT);
         }
 
@@ -73,11 +71,14 @@ public class AnalyzeResume implements Callable<Integer>, HasModules {
         final var resumeFormatter = guice.getInstance(ResumeFormatter.class);
         final var documentTextExtractor = guice.getInstance(DocumentTextExtractor.class);
 
-        try (var is = input.readInputStream(DOCX);
-             var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+        try (var is = input.readInputStream(DOCX)) {
             final var resumeText = documentTextExtractor.read(is);
             final var parsedResume = analyst.analyzePlainText(resumeText);
-            resumeFormatter.format(parsedResume, os);
+
+            try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+                resumeFormatter.format(parsedResume, os);
+            }
+
         }
 
         return 0;

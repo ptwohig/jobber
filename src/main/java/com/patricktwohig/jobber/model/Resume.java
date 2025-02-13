@@ -11,7 +11,7 @@ public class Resume {
 
     private List<Position> positions;
 
-    private List<Education> educations;
+    private List<Education> education;
 
     public Contact getContact() {
         return contact;
@@ -37,12 +37,12 @@ public class Resume {
         this.positions = positions;
     }
 
-    public List<Education> getEducations() {
-        return educations;
+    public List<Education> getEducation() {
+        return education;
     }
 
-    public void setEducations(List<Education> educations) {
-        this.educations = educations;
+    public void setEducation(List<Education> education) {
+        this.education = education;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class Resume {
         sb.append("contact=").append(contact);
         sb.append(", headline=").append(headline);
         sb.append(", positions=").append(positions);
-        sb.append(", educations=").append(educations);
+        sb.append(", educations=").append(education);
         sb.append('}');
         return sb.toString();
     }
@@ -61,12 +61,12 @@ public class Resume {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Resume resume = (Resume) o;
-        return Objects.equals(getContact(), resume.getContact()) && Objects.equals(getHeadline(), resume.getHeadline()) && Objects.equals(getPositions(), resume.getPositions()) && Objects.equals(getEducations(), resume.getEducations());
+        return Objects.equals(getContact(), resume.getContact()) && Objects.equals(getHeadline(), resume.getHeadline()) && Objects.equals(getPositions(), resume.getPositions()) && Objects.equals(getEducation(), resume.getEducation());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getContact(), getHeadline(), getPositions(), getEducations());
+        return Objects.hash(getContact(), getHeadline(), getPositions(), getEducation());
     }
 
 }

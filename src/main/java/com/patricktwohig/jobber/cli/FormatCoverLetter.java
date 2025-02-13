@@ -3,7 +3,9 @@ package com.patricktwohig.jobber.cli;
 import com.google.inject.Guice;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.format.CoverLetterFormatter;
+import com.patricktwohig.jobber.format.Postprocessor;
 import com.patricktwohig.jobber.guice.DocxFormatModule;
+import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
 import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
 import com.patricktwohig.jobber.guice.JsonFormatModule;
 import com.patricktwohig.jobber.input.DocumentInput;
@@ -11,6 +13,7 @@ import com.patricktwohig.jobber.model.CoverLetter;
 import picocli.CommandLine;
 
 import java.io.BufferedOutputStream;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
@@ -38,6 +41,13 @@ public class FormatCoverLetter implements HasModules, Callable<Integer> {
     )
     private OutputLine output;
 
+    @CommandLine.Option(
+            names = {"-op", "--omit-properties"},
+            description = "Specifies the properties of the new document to omit entirely.",
+            defaultValue = ""
+    )
+    private Set<String> omitProperties;
+
     @Override
     public Stream<Module> get() {
 
@@ -56,7 +66,7 @@ public class FormatCoverLetter implements HasModules, Callable<Integer> {
             default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
         };
 
-        return Stream.of(formatModule, documentInputModule);
+        return Stream.of(formatModule, documentInputModule, new JacksonPostprocessorModule());
 
     }
 
@@ -71,11 +81,19 @@ public class FormatCoverLetter implements HasModules, Callable<Integer> {
         final var guice = Guice.createInjector(modules);
         final var documentInput = guice.getInstance(DocumentInput.class);
         final var resumeFormatter = guice.getInstance(CoverLetterFormatter.class);
+        final var postprocessor = guice.getInstance(Postprocessor.Factory.class).get(CoverLetter.class)
+                .omit(omitProperties)
+                .build();
 
-        try (var is = input.readInputStream(JSON);
-             var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
-            final var resume = documentInput.read(CoverLetter.class, is);
-            resumeFormatter.format(resume, os);
+        try (var is = input.readInputStream(JSON)) {
+
+            final var coverLetter = documentInput.read(CoverLetter.class, is);
+            final var postprocessed = postprocessor.apply(coverLetter, coverLetter);
+
+            try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
+                resumeFormatter.format(postprocessed, os);
+            }
+
         }
 
         return 0;

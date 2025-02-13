@@ -3,9 +3,7 @@ package com.patricktwohig.jobber.guice;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provides;
 import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import jakarta.inject.Named;
 
 import java.time.Duration;

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.stream.Stream;
 
-public record OutputLine(Format format, String destination) {
+public record OutputLine(Format format, String destination) implements HasFormat {
 
     public static OutputLine valueOf(final String input) {
         return Stream.of(Format.values())
@@ -21,7 +21,7 @@ public record OutputLine(Format format, String destination) {
         return openOutputFileOrDefault(System.out);
     }
 
-    public OutputStream openOutputFileOrDefault(OutputStream defaultOutput) throws IOException {
+    public OutputStream openOutputFileOrDefault(final OutputStream defaultOutput) throws IOException {
         return destination == null || destination.isBlank()
                 ? defaultOutput
                 : new FileOutputStream(destination);
