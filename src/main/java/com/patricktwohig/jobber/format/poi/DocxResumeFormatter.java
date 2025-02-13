@@ -355,20 +355,28 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
                 final var accomplishments = position.getAccomplishmentStatements();
 
-                (accomplishments == null ? List.<String>of() : accomplishments)
+                final var iterator = (accomplishments == null ? List.<String>of() : accomplishments)
                         .stream()
                         .filter(Objects::nonNull)
                         .filter(not(String::isBlank))
-                        .forEach(accomplishment -> {
+                        .iterator();
 
-                            final var accomplishmentParagraph = document().createParagraph();
-                            accomplishmentParagraph.setNumID(numberingId());
-                            accomplishmentParagraph.setNumILvl(BigInteger.ZERO);
+                while (iterator.hasNext()) {
+                    final var accomplishment = iterator.next();
 
-                            final var accomplishmentRun = accomplishmentParagraph.createRun();
-                            accomplishmentRun.setText(accomplishment);
+                    final var accomplishmentParagraph = document().createParagraph();
 
-                        });
+                    if (!iterator.hasNext()) {
+                        accomplishmentParagraph.setSpacingAfter(PARAGRAPH_SPACING);
+                    }
+
+                    accomplishmentParagraph.setNumID(numberingId());
+                    accomplishmentParagraph.setNumILvl(BigInteger.ZERO);
+
+                    final var accomplishmentRun = accomplishmentParagraph.createRun();
+                    accomplishmentRun.setText(accomplishment);
+
+                }
 
             });
         }
