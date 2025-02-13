@@ -11,7 +11,7 @@ public class Education {
 
     private String major;
 
-    private LocalDate graduationDate;
+    private String graduationDate;
 
     public String getSchoolName() {
         return schoolName;
@@ -37,11 +37,11 @@ public class Education {
         this.major = major;
     }
 
-    public LocalDate getGraduationDate() {
+    public String getGraduationDate() {
         return graduationDate;
     }
 
-    public void setGraduationDate(LocalDate graduationDate) {
+    public void setGraduationDate(String graduationDate) {
         this.graduationDate = graduationDate;
     }
 

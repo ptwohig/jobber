@@ -2,11 +2,10 @@ package com.patricktwohig.jobber.cli;
 
 import picocli.CommandLine;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public record InputLine(Format format, String input, Charset charset) {
@@ -26,29 +25,38 @@ public record InputLine(Format format, String input, Charset charset) {
     }
 
     public String readInputString() {
-        return readInputString(Format.TEXT);
+        return readInputString(Format.VAL);
     }
 
     public String readInputString(final Format defaultFormat) {
         return switch (format == null ? defaultFormat : format) {
-            case TEXT -> input;
+            case VAL -> input;
             case ENV -> System.getenv(input);
+            case JSON, TEXT -> readFile();
             default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
         };
     }
 
+    private String readFile() {
+        try {
+            return Files.readString(Path.of(input()));
+        } catch (IOException e) {
+            throw new CliException(ExitCode.IO_EXCEPTION, e);
+        }
+    }
+
     public InputStream readInputStream() throws IOException {
-        return readInputStream(Format.TEXT);
+        return readInputStream(Format.VAL);
     }
 
     public InputStream readInputStream(final Format defaultFormat) throws IOException {
         return switch (format == null ? defaultFormat : format) {
-            case TEXT -> new ByteArrayInputStream(input.getBytes(charset));
+            case VAL -> new ByteArrayInputStream(input.getBytes(charset));
             case ENV -> {
                 final String env = System.getenv(input);
                 yield new ByteArrayInputStream(env == null ? new byte[0] : env.getBytes(charset));
             }
-            case DOCX, JSON -> new FileInputStream(input);
+            case DOCX, JSON, TEXT -> new FileInputStream(input);
         };
     }
 

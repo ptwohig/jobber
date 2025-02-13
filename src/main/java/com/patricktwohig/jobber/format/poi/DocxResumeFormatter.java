@@ -328,11 +328,11 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
                 final var startDate = position.getStartDate() == null
                         ? "<<Start Date>>"
-                        : POSITION_DATE_FORMAT.format(position.getStartDate());
+                        : position.getStartDate();
 
                 final var endDate = position.getEndDate() == null
                         ? "Present" :
-                        POSITION_DATE_FORMAT.format(position.getEndDate());
+                        position.getEndDate();
 
                 headlineItems.add(String.format("%s to %s", startDate, endDate));
 
@@ -403,7 +403,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
                         final var graduationDate = education.getGraduationDate() == null
                                 ? "<<Graduation Date>>"
-                                : EDUCATION_DATE_FORMAT.format(education.getGraduationDate());
+                                : education.getGraduationDate();
 
                         final var educationRun = educationParagraph.createRun();
 

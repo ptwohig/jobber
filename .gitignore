@@ -14,6 +14,7 @@ target/
 *.doc
 *.docx
 *.json
+*.txt
 
 ### Eclipse ###
 .apt_generated

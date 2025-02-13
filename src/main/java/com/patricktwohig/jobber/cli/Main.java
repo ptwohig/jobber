@@ -11,7 +11,7 @@ import picocli.CommandLine.HelpCommand;
 
 import java.util.stream.Stream;
 
-import static com.patricktwohig.jobber.cli.Format.TEXT;
+import static com.patricktwohig.jobber.cli.Format.VAL;
 
 @Command(
         name = "jobber",
@@ -53,10 +53,10 @@ public class Main implements HasModules {
                 new OpenAIModule(),
                 new AnalyzersModule(),
                 new ConfigurationModule()
-                        .add(Configuration.API_TIMEOUT, apiTimeout.readInputString(TEXT))
-                        .add(Configuration.LOG_API_CALLS, logApiCalls.readInputString(TEXT))
-                        .add(Configuration.OPENAI_MODEL, openAIModel.readInputString(TEXT))
-                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.readInputString(TEXT))
+                        .add(Configuration.API_TIMEOUT, apiTimeout.readInputString(VAL))
+                        .add(Configuration.LOG_API_CALLS, logApiCalls.readInputString(VAL))
+                        .add(Configuration.OPENAI_MODEL, openAIModel.readInputString(VAL))
+                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.readInputString(VAL))
         );
     }
 

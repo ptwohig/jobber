@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 public enum Format {
 
+    VAL,
     TEXT,
     DOCX,
     JSON,
