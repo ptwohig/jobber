@@ -61,8 +61,7 @@ public class JacksonPostprocessorBuilder<T> implements Postprocessor.Builder<T> 
                 }
 
                 try {
-                    final var result = objectMapper.treeToValue(targetNode, clazz);
-                    return result;
+                    return objectMapper.treeToValue(targetNode, clazz);
                 } catch (JsonProcessingException ex) {
                     throw new PostprocessingException(ex);
                 }
