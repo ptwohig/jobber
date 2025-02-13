@@ -9,6 +9,7 @@ public class JacksonPostprocessorModule extends PrivateModule {
     @Override
     protected void configure() {
         install(new ObjectMapperModule());
+        expose(Postprocessor.Factory.class);
         bind(Postprocessor.Factory.class).to(JacksonPostprocessorBuilderFactory.class);
     }
 

@@ -4,10 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.format.CoverLetterFormatter;
 import com.patricktwohig.jobber.format.Postprocessor;
-import com.patricktwohig.jobber.guice.DocxFormatModule;
-import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
-import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
-import com.patricktwohig.jobber.guice.JsonFormatModule;
+import com.patricktwohig.jobber.guice.*;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.model.CoverLetter;
 import picocli.CommandLine;
@@ -43,10 +40,9 @@ public class FormatCoverLetter implements HasModules, Callable<Integer> {
 
     @CommandLine.Option(
             names = {"-op", "--omit-properties"},
-            description = "Specifies the properties of the new document to omit entirely.",
-            defaultValue = ""
+            description = "Specifies the properties of the new document to omit entirely."
     )
-    private Set<String> omitProperties;
+    private Set<String> omitProperties = Set.of();
 
     @Override
     public Stream<Module> get() {
@@ -56,6 +52,7 @@ public class FormatCoverLetter implements HasModules, Callable<Integer> {
         final var formatModule = switch (outputFormat) {
             case JSON -> new JsonFormatModule();
             case DOCX -> new DocxFormatModule();
+            case TEXT -> new PlainTextFormatModule();
             default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
         };
 
