@@ -3,13 +3,12 @@ package com.patricktwohig.jobber.cli;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import com.patricktwohig.jobber.ai.CoverLetterAuthor;
-import com.patricktwohig.jobber.format.CoverLetterFormatter;
+import com.patricktwohig.jobber.ai.ResumeAuthor;
 import com.patricktwohig.jobber.format.Postprocessor;
+import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.guice.*;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.input.PageInput;
-import com.patricktwohig.jobber.model.CoverLetter;
 import com.patricktwohig.jobber.model.Resume;
 import picocli.CommandLine;
 
@@ -23,33 +22,25 @@ import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
 import static com.patricktwohig.jobber.cli.Format.*;
 
 @CommandLine.Command(
-        name = "author",
-        aliases = {"write"},
-        description = "Analyzes the candidates cover letter."
+        name = "tune",
+        description = "Authors the resume, tuning it to the job description provided.",
+        subcommands = {CommandLine.HelpCommand.class}
 )
-public class AuthorCoverLetter implements Callable<Integer>, HasModules {
+public class TuneResume implements Callable<Integer>, HasModules {
 
         @CommandLine.ParentCommand
         private HasModules parent;
 
         @CommandLine.Option(
-                names = {"-ir", "--input-resume"},
+                names = {"-i", "--input"},
                 description = "The resume to read in from structured format.",
                 required = true
         )
-        private InputLine inputResume;
-
-        @CommandLine.Option(
-                names = {"-ic", "--input-cover-letter"},
-                description = "The cover letter to read in from structured format.",
-                required = true
-        )
-        private InputLine inputCoverLetter;
+        private InputLine input;
 
         @CommandLine.Option(
                 names = {"-jdt", "--job-description"},
-                description = "The text of the job description. Specify ",
-                defaultValue = "text:"
+                description = "The text of the job description."
         )
         private InputLine jobDescription;
 
@@ -65,7 +56,6 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                 required = true
         )
         private OutputLine output;
-
         @CommandLine.Option(
                 names = {"-kp", "--keep-property"},
                 description = "Specifies properties of the original document to keep"
@@ -89,21 +79,12 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                         default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
                 };
 
-                final var documentInputModule = switch (inputResume.format(JSON)) {
+                final var documentInputModule = switch (input.format(JSON)) {
                         case JSON -> new JsonDocumentInputModule();
                         default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
                 };
 
-                if (!inputResume.format(JSON).equals(inputCoverLetter.format(JSON))) {
-                        throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
-                }
-
-                return Stream.of(
-                        formatModule,
-                        documentInputModule,
-                        new HtmlUnitPageInputModule(),
-                        new JacksonPostprocessorModule()
-                );
+                return Stream.of(formatModule, documentInputModule, new HtmlUnitPageInputModule(), new JacksonPostprocessorModule());
 
         }
 
@@ -113,32 +94,28 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                 final var modules = concat(parent).loadModules();
                 injector = Guice.createInjector(modules);
 
-                final var coverLetterAuthor = injector.getInstance(CoverLetterAuthor.class);
+                final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
                 final var documentInput = injector.getInstance(DocumentInput.class);
-                final var coverLetterFormatter = injector.getInstance(CoverLetterFormatter.class);
-                final var postprocessor = injector.getInstance(Postprocessor.Factory.class).get(CoverLetter.class)
+                final var resumeFormatter = injector.getInstance(ResumeFormatter.class);
+                final var postprocessor = injector.getInstance(Postprocessor.Factory.class).get(Resume.class)
                         .omit(omitProperties)
                         .keep(keepProperties)
                         .build();
 
-                try (var resumeInputStream = inputResume.readInputStream(JSON);
-                     var coverLetterInputStream = inputCoverLetter.readInputStream(JSON)) {
+                try (var is = input.readInputStream(JSON)) {
 
-                        final var resume = documentInput.read(Resume.class, resumeInputStream);
-                        final var coverLetter = documentInput.read(CoverLetter.class, coverLetterInputStream);
-
+                        final var resume = documentInput.read(Resume.class, is);
                         final var jobDescriptionText = readJobDescription();
 
-                        final var authoredResumed = coverLetterAuthor.tuneCoverLetterForResumeAndJobDescription(
+                        final var authoredResumed = resumeAuthor.tuneResumeForPublicJobDescriptionUrl(
                                 resume,
-                                coverLetter,
                                 jobDescriptionText
                         );
 
-                        final var postProcessedResume = postprocessor.apply(coverLetter, authoredResumed);
+                        final var postProcessedResume = postprocessor.apply(resume, authoredResumed);
 
                         try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
-                                coverLetterFormatter.format(postProcessedResume, os);
+                                resumeFormatter.format(postProcessedResume, os);
                         }
 
                 }
@@ -146,6 +123,7 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                 return 0;
 
         }
+
 
         private String readJobDescription() throws IOException {
                 if (jobDescriptionUrl != null) {
@@ -159,5 +137,6 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
                         throw new CliException(INVALID_PARAMETER);
                 }
         }
+
 
 }

@@ -35,4 +35,23 @@ public interface CoverLetterAuthor {
             @V("jobDescription") String jobDescription
     );
 
+    @SystemMessage(
+            """
+                    You author cover letters for jobseekers based on information provided. The jobseeker will describe 
+                    the cover letter and what they want to see. Adjust it according to the jobseeker's comments. 
+                    Keep as much of hte original document as possible and adjust only the language which is already 
+                    in the document. Do not remove sections.
+            """
+    )
+    @UserMessage(
+            """
+                    Base Cover Letter - {{baseCoverLetter}}
+                    Jobseeker's Comments - {{jobSeekersComments}}
+            """
+    )
+    Resume tuneResumeBasedOnJobSeekersDescription(
+            @V("baseCoverLetter") Resume baseCoverLetter,
+            @V("jobSeekersComments") String jobSeekersComments
+    );
+
 }

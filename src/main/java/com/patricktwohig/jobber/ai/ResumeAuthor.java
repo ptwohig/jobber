@@ -20,13 +20,32 @@ public interface ResumeAuthor {
     )
     @UserMessage(
             """
-                    Base ResumeCommands - {{baseResume}}
+                    Base Resume - {{baseResume}}
                     Job Description - {{jobDescriptionUrl}}
             """
     )
     Resume tuneResumeForPublicJobDescriptionUrl(
             @V("baseResume") Resume baseResume,
             @V("jobDescriptionUrl") String jobDescriptionUrl
+    );
+
+    @SystemMessage(
+            """
+                    You author resumes for jobseekers based on information provided. The jobseeker will describe the \
+                    resume and what they want to see. Adjust it according to the jobseeker's comments. Keep as much \
+                    of hte original document as possible and adjust only the language which is already in the document. \
+                    Do not remove sections.
+            """
+    )
+    @UserMessage(
+            """
+                    Base Resume - {{baseResume}}
+                    Jobseeker's Comments - {{jobSeekersComments}}
+            """
+    )
+    Resume tuneResumeBasedOnJobSeekersDescription(
+            @V("baseResume") Resume baseResume,
+            @V("jobSeekersComments") String jobSeekersComments
     );
 
 }

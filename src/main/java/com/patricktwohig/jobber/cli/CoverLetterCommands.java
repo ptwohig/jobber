@@ -1,7 +1,6 @@
 package com.patricktwohig.jobber.cli;
 
 import com.google.inject.Module;
-import com.patricktwohig.jobber.format.CoverLetterFormatter;
 import picocli.CommandLine;
 import picocli.CommandLine.HelpCommand;
 
@@ -14,7 +13,7 @@ import java.util.stream.Stream;
         subcommands = {
                 HelpCommand.class,
                 AnalyzeCoverLetter.class,
-                AuthorCoverLetter.class,
+                TuneCoverLetter.class,
                 FormatCoverLetter.class
         }
 )
