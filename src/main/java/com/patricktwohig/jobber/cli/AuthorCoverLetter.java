@@ -67,13 +67,13 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
         private OutputLine output;
 
         @CommandLine.Option(
-                names = {"-kp", "--keep-properties"},
+                names = {"-kp", "--keep-property"},
                 description = "Specifies properties of the original document to keep"
         )
         private Set<String> keepProperties = Set.of();
 
         @CommandLine.Option(
-                names = {"-op", "--omit-properties"},
+                names = {"-op", "--omit-property"},
                 description = "Specifies the properties of the new document to omit entirely."
         )
         private Set<String> omitProperties = Set.of();

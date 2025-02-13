@@ -56,16 +56,18 @@ public class JacksonPostprocessorBuilder<T> implements Postprocessor.Builder<T> 
                 final var targetNode = (ObjectNode) objectMapper.valueToTree(modified);
 
                 if (sourceNode.has(property)) {
-                    targetNode.set(property, sourceNode.get(property));
+                    final var replacement = sourceNode.get(property);
+                    targetNode.set(property, replacement);
                 }
 
                 try {
-                    return objectMapper.treeToValue(targetNode, clazz);
+                    final var result = objectMapper.treeToValue(targetNode, clazz);
+                    return result;
                 } catch (JsonProcessingException ex) {
                     throw new PostprocessingException(ex);
                 }
 
-            });
+           });
 
         }
 

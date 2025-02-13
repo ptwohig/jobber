@@ -39,7 +39,7 @@ public class FormatCoverLetter implements HasModules, Callable<Integer> {
     private OutputLine output;
 
     @CommandLine.Option(
-            names = {"-op", "--omit-properties"},
+            names = {"-op", "--omit-property"},
             description = "Specifies the properties of the new document to omit entirely."
     )
     private Set<String> omitProperties = Set.of();
