@@ -124,19 +124,27 @@ public class TuneResume implements Callable<Integer>, HasModules {
 
         }
 
-
         private String readJobDescription() throws IOException {
-                if (jobDescriptionUrl != null) {
-                        final var pageInput = injector.getInstance(PageInput.class);
-                        final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(LITERAL);
-                        return pageInput.loadPage(jobDescriptionUrl);
-                } else if (jobDescription != null) {
-                        System.out.println("Reading Job Description.");
-                        return jobDescription.readInputString(TEXT);
-                } else {
-                        throw new CliException(INVALID_PARAMETER);
-                }
-        }
 
+                System.out.println("Reading Job Description...");
+
+                try {
+
+                        if (jobDescriptionUrl != null) {
+                                final var pageInput = injector.getInstance(PageInput.class);
+                                final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(LITERAL);
+                                final var jobDescriptionText = pageInput.loadPage(jobDescriptionUrl);
+                                System.out.println("Job Description: " + jobDescriptionText);
+                                return jobDescriptionText;
+                        } else if (jobDescription != null) {
+                                return jobDescription.readInputString(TEXT);
+                        } else {
+                                throw new CliException(INVALID_PARAMETER);
+                        }
+                } finally {
+                        System.out.println("Reading Job Description complete.");
+                }
+
+        }
 
 }
