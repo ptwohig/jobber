@@ -19,6 +19,8 @@ import static org.apache.poi.xwpf.usermodel.ParagraphAlignment.CENTER;
 
 public class DocxCoverLetterFormatter implements CoverLetterFormatter {
 
+    private static final String DELIMITER = " | ";
+
     private static final boolean HEADLINE_BOLD = true;
 
     private static final int HEADLINE_FONT_SIZE = 14;
@@ -101,12 +103,16 @@ public class DocxCoverLetterFormatter implements CoverLetterFormatter {
             run.setText(senderPhone == null ? "<<Your Phone>>" : senderPhone);
             run.addBreak();
 
-            (senderLinks == null ? List.<Link>of() : senderLinks)
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .filter(link -> link.getUrl() != null)
-                    .map(link -> new DocumentLinkRecord(document(), link))
-                    .forEach(link -> link.writeFullUrl(headline));
+            new SplitList.Builder()
+                    .withDelimiter(() -> {
+                        final var delimiter = headline.createRun();
+                        delimiter.setText(DELIMITER);
+                        return delimiter;
+                    })
+                    .withRuns((senderLinks == null ? List.<Link>of() : senderLinks).stream().map(link -> () -> {
+                        final var record = new DocumentLinkRecord(document(), link);
+                        return record.writeFullUrl(headline);
+                    })).build().write();
 
         }
 

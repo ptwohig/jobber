@@ -8,6 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import static com.patricktwohig.jobber.cli.Format.LITERAL;
+import static com.patricktwohig.jobber.cli.Format.PREFIX_DELIMITER;
+
 public record InputLine(Format format, String input, Charset charset) implements HasFormat {
 
     public static final String DELIMITER = ":";
@@ -25,12 +28,12 @@ public record InputLine(Format format, String input, Charset charset) implements
     }
 
     public String readInputString() {
-        return readInputString(Format.VAL);
+        return readInputString(LITERAL);
     }
 
     public String readInputString(final Format defaultFormat) {
         return switch (format == null ? defaultFormat : format) {
-            case VAL -> input;
+            case LITERAL -> input;
             case ENV -> System.getenv(input);
             case JSON, TEXT -> readFile();
             default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
@@ -46,12 +49,12 @@ public record InputLine(Format format, String input, Charset charset) implements
     }
 
     public InputStream readInputStream() throws IOException {
-        return readInputStream(Format.VAL);
+        return readInputStream(LITERAL);
     }
 
     public InputStream readInputStream(final Format defaultFormat) throws IOException {
         return switch (format == null ? defaultFormat : format) {
-            case VAL -> new ByteArrayInputStream(input.getBytes(charset));
+            case LITERAL -> new ByteArrayInputStream(input.getBytes(charset));
             case ENV -> {
                 final String env = System.getenv(input);
                 yield new ByteArrayInputStream(env == null ? new byte[0] : env.getBytes(charset));
@@ -61,15 +64,25 @@ public record InputLine(Format format, String input, Charset charset) implements
     }
 
     public String toString() {
-        return format == null ? input : format.prefixWithDelimiter() + input;
+        return format == null ? input : format.getPrefix() + PREFIX_DELIMITER + input;
     }
 
     public static InputLine valueOf(final String input) {
-        return Stream.of(Format.values())
-                .filter(s -> input.startsWith(s.prefixWithDelimiter()))
+
+        final var prefixStream = Format.allPrefixes()
+                .filter(alias -> input.startsWith(alias.value()))
+                .map(alias -> new InputLine(alias.format(), alias.stripPrefix(input), null));
+
+        final var suffixStream = Format.allSuffixes()
+                .filter(alias -> input.endsWith(alias.value()))
+                .map(alias -> new InputLine(alias.format(), input, null));
+
+        final var result = Stream.concat(prefixStream, suffixStream)
                 .findFirst()
-                .map(s -> new InputLine(s, input.substring(s.prefixWithDelimiter().length()), null))
                 .orElseGet(() -> new InputLine(null, input, null));
+
+        return result;
+
     }
 
     public static class Converter implements CommandLine.ITypeConverter<InputLine> {

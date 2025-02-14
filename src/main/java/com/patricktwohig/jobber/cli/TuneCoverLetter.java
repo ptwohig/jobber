@@ -86,6 +86,7 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
                 final var formatModule = switch (output.format(JSON)) {
                         case JSON -> new JsonFormatModule();
                         case DOCX -> new DocxFormatModule();
+                        case TEXT -> new PlainTextFormatModule();
                         default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
                 };
 
@@ -148,16 +149,26 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
         }
 
         private String readJobDescription() throws IOException {
-                if (jobDescriptionUrl != null) {
-                        final var pageInput = injector.getInstance(PageInput.class);
-                        final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(VAL);
-                        return pageInput.loadPage(jobDescriptionUrl);
-                } else if (jobDescription != null) {
-                        System.out.println("Reading Job Description.");
-                        return jobDescription.readInputString(TEXT);
-                } else {
-                        throw new CliException(INVALID_PARAMETER);
+
+                System.out.println("Reading Job Description...");
+
+                try {
+
+                        if (jobDescriptionUrl != null) {
+                                final var pageInput = injector.getInstance(PageInput.class);
+                                final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(LITERAL);
+                                final var jobDescriptionText = pageInput.loadPage(jobDescriptionUrl);
+                                System.out.println("Job Description: " + jobDescriptionText);
+                                return jobDescriptionText;
+                        } else if (jobDescription != null) {
+                                return jobDescription.readInputString(TEXT);
+                        } else {
+                                throw new CliException(INVALID_PARAMETER);
+                        }
+                } finally {
+                        System.out.println("Reading Job Description complete.");
                 }
+
         }
 
 }

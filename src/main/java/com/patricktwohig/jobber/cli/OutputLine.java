@@ -10,11 +10,19 @@ import java.util.stream.Stream;
 public record OutputLine(Format format, String destination) implements HasFormat {
 
     public static OutputLine valueOf(final String input) {
-        return Stream.of(Format.values())
-                .filter(f -> input.startsWith(f.prefixWithDelimiter()))
+
+        final var prefixStream = Format.allPrefixes()
+                .filter(alias -> input.startsWith(alias.value()))
+                .map(alias -> new OutputLine(alias.format(), alias.stripPrefix(input)));
+
+        final var suffixStream = Format.allSuffixes()
+                .filter(alias -> input.endsWith(alias.value()))
+                .map(alias -> new OutputLine(alias.format(), input));
+
+        return Stream.concat(prefixStream, suffixStream)
                 .findFirst()
-                .map(f -> new OutputLine(f, input.substring(f.prefixWithDelimiter().length())))
-                .orElseGet(() -> new OutputLine(null, input));
+                .orElseThrow(() -> new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT));
+
     }
 
     public OutputStream openOutputFileOrStdout() throws IOException {

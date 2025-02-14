@@ -11,7 +11,7 @@ import picocli.CommandLine.HelpCommand;
 
 import java.util.stream.Stream;
 
-import static com.patricktwohig.jobber.cli.Format.VAL;
+import static com.patricktwohig.jobber.cli.Format.LITERAL;
 
 @Command(
         name = "jobber",
@@ -23,7 +23,7 @@ public class Main implements HasModules {
     @CommandLine.Option(
             names = {"-to", "--api-timeout"},
             description = "The API Call timeout. Expressed in seconds.",
-            defaultValue = "60"
+            defaultValue = "180"
     )
     private InputLine apiTimeout;
 
@@ -45,7 +45,7 @@ public class Main implements HasModules {
             names = {"--openai-api-key"},
             description = "The OpenAI API Key"
     )
-    private InputLine openAIApiKey;
+    private InputLine openAIApiKey = EnvironmentVariables.OPENAI_API_KEY.getInputLine();
 
     @Override
     public Stream<Module> get() {
@@ -53,10 +53,10 @@ public class Main implements HasModules {
                 new OpenAIModule(),
                 new AnalyzersModule(),
                 new ConfigurationModule()
-                        .add(Configuration.API_TIMEOUT, apiTimeout.readInputString(VAL))
-                        .add(Configuration.LOG_API_CALLS, logApiCalls.readInputString(VAL))
-                        .add(Configuration.OPENAI_MODEL, openAIModel.readInputString(VAL))
-                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.readInputString(VAL))
+                        .add(Configuration.API_TIMEOUT, apiTimeout.readInputString(LITERAL))
+                        .add(Configuration.LOG_API_CALLS, logApiCalls.readInputString(LITERAL))
+                        .add(Configuration.OPENAI_MODEL, openAIModel.readInputString(LITERAL))
+                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.readInputString(LITERAL))
         );
     }
 
