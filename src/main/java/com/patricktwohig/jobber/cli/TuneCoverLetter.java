@@ -131,8 +131,7 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
                         final var jobDescriptionText = readJobDescription();
 
                         final var authoredResumed = coverLetterAuthor.tuneCoverLetterForResumeAndJobDescription(
-                                resume,
-                                coverLetter,
+                                coverLetter, resume,
                                 jobDescriptionText
                         );
 

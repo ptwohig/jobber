@@ -107,7 +107,7 @@ public class TuneResume implements Callable<Integer>, HasModules {
                         final var resume = documentInput.read(Resume.class, is);
                         final var jobDescriptionText = readJobDescription();
 
-                        final var authoredResumed = resumeAuthor.tuneResumeForPublicJobDescriptionUrl(
+                        final var authoredResumed = resumeAuthor.tuneResumeForPublicJobDescription(
                                 resume,
                                 jobDescriptionText
                         );

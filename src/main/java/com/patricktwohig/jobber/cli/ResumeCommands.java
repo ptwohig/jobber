@@ -10,7 +10,7 @@ import java.util.stream.Stream;
         name = "resume",
         aliases = {"cv", "res"},
         description = "Performs resume/cv analysis tasks.",
-        subcommands = {HelpCommand.class, AnalyzeResume.class, TuneResume.class, FormatResume.class}
+        subcommands = {HelpCommand.class, AuthorResume.class, AnalyzeResume.class, TuneResume.class, FormatResume.class}
 )
 public class ResumeCommands implements HasModules {
 

@@ -12,6 +12,7 @@ import java.util.stream.Stream;
         description = "Performs cover letter tasks.",
         subcommands = {
                 HelpCommand.class,
+                AuthorCoverLetter.class,
                 AnalyzeCoverLetter.class,
                 TuneCoverLetter.class,
                 FormatCoverLetter.class

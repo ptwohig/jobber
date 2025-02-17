@@ -13,8 +13,6 @@ import static com.patricktwohig.jobber.cli.Format.PREFIX_DELIMITER;
 
 public record InputLine(Format format, String input, Charset charset) implements HasFormat {
 
-    public static final String DELIMITER = ":";
-
     public InputLine {
 
         if (input == null) {
@@ -77,11 +75,9 @@ public record InputLine(Format format, String input, Charset charset) implements
                 .filter(alias -> input.endsWith(alias.value()))
                 .map(alias -> new InputLine(alias.format(), input, null));
 
-        final var result = Stream.concat(prefixStream, suffixStream)
+        return Stream.concat(prefixStream, suffixStream)
                 .findFirst()
                 .orElseGet(() -> new InputLine(null, input, null));
-
-        return result;
 
     }
 

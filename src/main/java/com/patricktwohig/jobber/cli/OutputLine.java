@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.stream.Stream;
 
+import static com.patricktwohig.jobber.cli.Format.PREFIX_DELIMITER;
+
 public record OutputLine(Format format, String destination) implements HasFormat {
 
     public static OutputLine valueOf(final String input) {
@@ -33,6 +35,11 @@ public record OutputLine(Format format, String destination) implements HasFormat
         return destination == null || destination.isBlank()
                 ? defaultOutput
                 : new FileOutputStream(destination);
+    }
+
+    @Override
+    public String toString() {
+        return format == null ? destination : format.getPrefix() + PREFIX_DELIMITER + destination;
     }
 
     public static class Converter implements CommandLine.ITypeConverter<OutputLine> {
