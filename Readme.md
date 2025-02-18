@@ -3,7 +3,7 @@
 Jobber is a simple Java library which can be used to parse a resume and reformat it into an ATS compliant Word document. This library is built on top of [Langchain4j](https://github.com/langchain4j/langchain4j) and can be used to reformat and tailor resumes into specific job listings. It may operate with any LLMs provided by LangChain4j. I've tested with the following:
 
 * ChatGPT 4.0
-* Anthropic Claude 3.5
+* Anthropic Claude 3.5 (Coming Soon)
 
 The basic workflow for Jobber is as follows:
 
