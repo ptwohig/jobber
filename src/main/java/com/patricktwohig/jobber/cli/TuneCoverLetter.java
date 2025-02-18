@@ -6,20 +6,22 @@ import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.CoverLetterAuthor;
 import com.patricktwohig.jobber.format.CoverLetterFormatter;
 import com.patricktwohig.jobber.format.Postprocessor;
-import com.patricktwohig.jobber.guice.*;
+import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
+import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
+import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.input.PageInput;
 import com.patricktwohig.jobber.model.CoverLetter;
 import com.patricktwohig.jobber.model.Resume;
 import picocli.CommandLine;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
+import static com.patricktwohig.jobber.cli.ExitCode.UNSUPPORTED_OUTPUT_FORMAT;
 import static com.patricktwohig.jobber.cli.Format.*;
 
 @CommandLine.Command(
@@ -61,10 +63,9 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
 
         @CommandLine.Option(
                 names = {"-o", "--output"},
-                description = "The resume output file.",
-                required = true
+                description = "The resume output file."
         )
-        private OutputLine output;
+        private Set<OutputLine> output = Set.of();
 
         @CommandLine.Option(
                 names = {"-kp", "--keep-property"},
@@ -78,17 +79,12 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
         )
         private Set<String> omitProperties = Set.of();
 
+        private FormatterSet<CoverLetterFormatter> formatters = new FormatterSet<>(CoverLetterFormatter.class);
+
         private Injector injector;
 
         @Override
         public Stream<Module> get() {
-
-                final var formatModule = switch (output.format(JSON)) {
-                        case JSON -> new JsonFormatModule();
-                        case DOCX -> new DocxFormatModule();
-                        case TEXT -> new PlainTextFormatModule();
-                        default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
-                };
 
                 final var documentInputModule = switch (inputResume.format(JSON)) {
                         case JSON -> new JsonDocumentInputModule();
@@ -100,7 +96,6 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
                 }
 
                 return Stream.of(
-                        formatModule,
                         documentInputModule,
                         new HtmlUnitPageInputModule(),
                         new JacksonPostprocessorModule()
@@ -111,12 +106,24 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
         @Override
         public Integer call() throws Exception {
 
+                output.forEach(o -> {
+
+                        if (o.destination().isBlank()) {
+                                throw new CliException(ExitCode.INVALID_OUTPUT_DESTINATION);
+                        }
+
+                        switch (o.format()) {
+                                case JSON, DOCX, TEXT: break;
+                                default: throw new CliException(UNSUPPORTED_OUTPUT_FORMAT);
+                        }
+
+                });
+
                 final var modules = concat(parent).loadModules();
                 injector = Guice.createInjector(modules);
 
                 final var coverLetterAuthor = injector.getInstance(CoverLetterAuthor.class);
                 final var documentInput = injector.getInstance(DocumentInput.class);
-                final var coverLetterFormatter = injector.getInstance(CoverLetterFormatter.class);
                 final var postprocessor = injector.getInstance(Postprocessor.Factory.class).get(CoverLetter.class)
                         .omit(omitProperties)
                         .keep(keepProperties)
@@ -135,11 +142,19 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
                                 jobDescriptionText
                         );
 
-                        final var postProcessedResume = postprocessor.apply(coverLetter, authoredResumed);
+                        final var postProcessedCoverLetter = postprocessor.apply(coverLetter, authoredResumed);
 
-                        try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
-                                coverLetterFormatter.format(postProcessedResume, os);
+                        if (output.isEmpty()) {
+                                formatters.getFormatter(TEXT).format(postProcessedCoverLetter, System.out);
+                        } else {
+                                for (final var o : output) {
+                                        try (var os = o.openOutputFileOrStdout()) {
+                                                final var formatter = formatters.getFormatter(o.format(JSON));
+                                                formatter.format(postProcessedCoverLetter, os);
+                                        }
+                                }
                         }
+
 
                 }
 

@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
+import static com.patricktwohig.jobber.cli.ExitCode.UNSUPPORTED_OUTPUT_FORMAT;
 import static com.patricktwohig.jobber.cli.Format.*;
 
 @CommandLine.Command(
@@ -52,10 +53,10 @@ public class TuneResume implements Callable<Integer>, HasModules {
 
         @CommandLine.Option(
                 names = {"-o", "--output"},
-                description = "The resume output file.",
-                required = true
+                description = "The resume output file."
         )
-        private OutputLine output;
+        private Set<OutputLine> output = Set.of();
+
         @CommandLine.Option(
                 names = {"-kp", "--keep-property"},
                 description = "Specifies properties of the original document to keep"
@@ -70,33 +71,41 @@ public class TuneResume implements Callable<Integer>, HasModules {
 
         private Injector injector;
 
+        private FormatterSet<ResumeFormatter> formatters = new FormatterSet<>(ResumeFormatter.class);
+       ;
         @Override
         public Stream<Module> get() {
-
-                final var formatModule = switch (output.format(JSON)) {
-                        case JSON -> new JsonFormatModule();
-                        case DOCX -> new DocxFormatModule();
-                        default -> throw new CliException(ExitCode.UNSUPPORTED_OUTPUT_FORMAT);
-                };
 
                 final var documentInputModule = switch (input.format(JSON)) {
                         case JSON -> new JsonDocumentInputModule();
                         default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
                 };
 
-                return Stream.of(formatModule, documentInputModule, new HtmlUnitPageInputModule(), new JacksonPostprocessorModule());
+                return Stream.of(documentInputModule, new HtmlUnitPageInputModule(), new JacksonPostprocessorModule());
 
         }
 
         @Override
         public Integer call() throws Exception {
 
+                output.forEach(o -> {
+
+                        if (o.destination().isBlank()) {
+                                throw new CliException(ExitCode.INVALID_OUTPUT_DESTINATION);
+                        }
+
+                        switch (o.format()) {
+                                case JSON, DOCX, TEXT: break;
+                                default: throw new CliException(UNSUPPORTED_OUTPUT_FORMAT);
+                        }
+
+                });
+
                 final var modules = concat(parent).loadModules();
                 injector = Guice.createInjector(modules);
 
                 final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
                 final var documentInput = injector.getInstance(DocumentInput.class);
-                final var resumeFormatter = injector.getInstance(ResumeFormatter.class);
                 final var postprocessor = injector.getInstance(Postprocessor.Factory.class).get(Resume.class)
                         .omit(omitProperties)
                         .keep(keepProperties)
@@ -114,8 +123,15 @@ public class TuneResume implements Callable<Integer>, HasModules {
 
                         final var postProcessedResume = postprocessor.apply(resume, authoredResumed);
 
-                        try (var os = new BufferedOutputStream(output.openOutputFileOrStdout())) {
-                                resumeFormatter.format(postProcessedResume, os);
+                        if (output.isEmpty()) {
+                                formatters.getFormatter(TEXT).format(postProcessedResume, System.out);
+                        } else {
+                                for (var o : output) {
+                                        try (final var os = o.openOutputFileOrStdout()) {
+                                                final var formatter = formatters.getFormatter(o.format(JSON));
+                                                formatter.format(postProcessedResume, os);
+                                        }
+                                }
                         }
 
                 }

@@ -51,7 +51,7 @@ public class AuthorResume implements Callable<Integer>, HasModules {
     )
     private Set<OutputLine> output = Set.of();
 
-    private Map<Format, ResumeFormatter> formatters = new EnumMap<>(Format.class);
+    private FormatterSet<ResumeFormatter> formatters = new FormatterSet<>(ResumeFormatter.class);
 
     private Injector injector;
 
@@ -124,10 +124,7 @@ public class AuthorResume implements Callable<Integer>, HasModules {
 
     public void writeResumeToStdout(final Resume resume) {
 
-        final var formatter = formatters.computeIfAbsent(
-                TEXT,
-                f -> Guice.createInjector(new PlainTextFormatModule()).getInstance(ResumeFormatter.class)
-        );
+        final var formatter = formatters.getFormatter(TEXT);
 
         try {
             formatter.format(resume, System.out);
@@ -143,18 +140,7 @@ public class AuthorResume implements Callable<Integer>, HasModules {
 
         output.forEach(o -> {
 
-            final var formatter = formatters.computeIfAbsent(o.format(JSON), format -> {
-
-                final var module = switch (format) {
-                    case JSON: yield new JsonFormatModule();
-                    case DOCX: yield new DocxFormatModule();
-                    case TEXT: yield new PlainTextFormatModule();
-                    default: throw new CliException(UNSUPPORTED_OUTPUT_FORMAT);
-                };
-
-                final var injector = Guice.createInjector(module);
-                return injector.getInstance(ResumeFormatter.class);
-            });
+            final var formatter = formatters.getFormatter(o.format(JSON));
 
             try (var os = o.openOutputFileOrStdout()) {
                 formatter.format(resume, os);

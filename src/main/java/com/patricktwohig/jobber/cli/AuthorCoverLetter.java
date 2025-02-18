@@ -5,14 +5,14 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.CoverLetterAuthor;
 import com.patricktwohig.jobber.format.CoverLetterFormatter;
-import com.patricktwohig.jobber.guice.*;
+import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
+import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
+import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.model.CoverLetter;
 import picocli.CommandLine;
 
 import java.io.IOException;
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -54,7 +54,7 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
     )
     private boolean echo = false;
 
-    private Map<Format, CoverLetterFormatter> formatters = new EnumMap<>(Format.class);
+    private FormatterSet<CoverLetterFormatter> formatters = new FormatterSet<>(CoverLetterFormatter.class);
 
     private Injector injector;
 
@@ -95,6 +95,7 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
         var latestRevision = documentInput.read(CoverLetter.class, input.readInputStream());
 
         final var scanner = new Scanner(System.in);
+        writeToStdout(latestRevision);
 
         System.out.printf("Using input %s and output %s%n", input, output);
         System.out.println("I will help you edit your cover lettter based on the comments you provide.");
@@ -107,7 +108,9 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
 
             final var revisions = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(latestRevision, comments);
 
-            echoIfNecessary(revisions.getCoverLetter());
+            if (echo)
+                writeToStdout(revisions.getCoverLetter());
+
             System.out.println(revisions.getRemarks());
 
             System.out.println("--");
@@ -121,45 +124,17 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
 
     }
 
-    public void echoIfNecessary(final CoverLetter coverLetter) {
-
-        if (echo) {
-
-            final var formatter = formatters.computeIfAbsent(
-                    TEXT,
-                    f -> Guice
-                            .createInjector(new PlainTextFormatModule())
-                            .getInstance(CoverLetterFormatter.class)
-            );
-
-            try {
-                formatter.format(coverLetter, System.out);
-            } catch (IOException ex) {
-                throw new CliException(IO_EXCEPTION, ex);
-            }
-
-        }
-
+    public void writeToStdout(final CoverLetter coverLetter) throws IOException {
+        final var formatter = formatters.getFormatter(TEXT);
+        formatter.format(coverLetter, System.out);
         System.out.println();
-
     }
 
     public void writeAll(final CoverLetter coverLetter) {
 
         output.forEach(o -> {
 
-            final var formatter = formatters.computeIfAbsent(o.format(JSON), format -> {
-
-                final var module = switch (format) {
-                    case JSON: yield new JsonFormatModule();
-                    case DOCX: yield new DocxFormatModule();
-                    case TEXT: yield new PlainTextFormatModule();
-                    default: throw new CliException(UNSUPPORTED_OUTPUT_FORMAT);
-                };
-
-                final var injector = Guice.createInjector(module);
-                return injector.getInstance(CoverLetterFormatter.class);
-            });
+            final var formatter = formatters.getFormatter(o.format(JSON));
 
             try (var os = o.openOutputFileOrStdout()) {
                 formatter.format(coverLetter, os);
