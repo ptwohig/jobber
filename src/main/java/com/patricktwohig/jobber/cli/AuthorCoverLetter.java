@@ -107,14 +107,16 @@ public class AuthorCoverLetter implements Callable<Integer>, HasModules {
             System.out.println("Just a moment...");
 
             final var revisions = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(latestRevision, comments);
+            latestRevision = revisions.getCoverLetter();
 
             if (echo)
                 writeToStdout(revisions.getCoverLetter());
 
-            System.out.println(revisions.getRemarks());
-
             System.out.println("--");
             writeAll(revisions.getCoverLetter());
+
+            System.out.println("--");
+            System.out.println(revisions.getRemarks());
 
             System.out.print(">> ");
 

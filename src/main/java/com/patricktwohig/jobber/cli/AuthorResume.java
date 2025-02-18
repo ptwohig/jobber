@@ -105,14 +105,16 @@ public class AuthorResume implements Callable<Integer>, HasModules {
             System.out.println("Just a moment...");
 
             final var revisions = resumeAuthor.tuneResumeBasedOnJobSeekersComments(latestRevision, comments);
+            latestRevision = revisions.getResume();
 
             if (echo)
                 writeResumeToStdout(revisions.getResume());
 
-            System.out.println(revisions.getRemarks());
-
             System.out.println("--");
             writeAll(revisions.getResume());
+
+            System.out.println("--");
+            System.out.println(revisions.getRemarks());
 
             System.out.print(">> ");
 
