@@ -107,10 +107,11 @@ public class AuthorResume implements Callable<Integer>, HasModules {
             final var revisions = resumeAuthor.tuneResumeBasedOnJobSeekersComments(latestRevision, comments);
             latestRevision = revisions.getResume();
 
-            if (echo)
+            if (echo) {
+                System.out.println("--");
                 writeResumeToStdout(revisions.getResume());
+            }
 
-            System.out.println("--");
             writeAll(revisions.getResume());
 
             System.out.println("--");

@@ -52,7 +52,7 @@ public class Main implements HasModules {
     @CommandLine.Option(
             names = "--max-message-count",
             description = "The maximum message memory count.",
-            defaultValue = "4"
+            defaultValue = "10"
     )
     private InputLine maxTokenCount;
 
