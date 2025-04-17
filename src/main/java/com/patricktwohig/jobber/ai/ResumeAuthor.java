@@ -15,7 +15,7 @@ public interface ResumeAuthor {
             description using the supplied resume as a base. Match the resume's title to the job description and
             include specific keywords from it. Maintain the total years of experience and sort experience by end date,
             placing current roles first. Assume "present" for roles without an end date. Preserve the original
-            positions of titles, dates, and locations.
+            positions of titles, dates, and locations. Remove skills not related to the job description.
             """
     )
     @UserMessage(

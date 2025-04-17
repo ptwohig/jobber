@@ -5,9 +5,11 @@ import picocli.CommandLine;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.Format.PREFIX_DELIMITER;
+import static java.nio.file.Files.createDirectories;
 
 public record OutputLine(Format format, String destination) implements HasFormat {
 
@@ -32,9 +34,16 @@ public record OutputLine(Format format, String destination) implements HasFormat
     }
 
     public OutputStream openOutputFileOrDefault(final OutputStream defaultOutput) throws IOException {
-        return destination == null || destination.isBlank()
-                ? defaultOutput
-                : new FileOutputStream(destination);
+
+        if (destination == null || destination.isBlank()) {
+            return defaultOutput;
+        }
+
+        final var destinationPath = Paths.get(destination);
+        createDirectories(destinationPath.getParent());
+
+        return new FileOutputStream(destination);
+
     }
 
     @Override
