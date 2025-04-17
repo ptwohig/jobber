@@ -432,19 +432,26 @@ public class DocxResumeFormatter implements ResumeFormatter {
                         educationParagraph.setNumID(numberingId());
                         educationParagraph.setNumILvl(BigInteger.ZERO);
 
-                        final var graduationDate = education.getGraduationDate() == null
-                                ? "<<Graduation Date>>"
-                                : education.getGraduationDate();
+                        final var graduationDate = education.getGraduationDate();
 
                         final var educationRun = educationParagraph.createRun();
 
-                        educationRun.setText(String.format(
-                                "%s in %s - %s. %s.",
-                                education.getDegreeEarned(),
-                                education.getMajor(),
-                                graduationDate,
-                                education.getSchoolName()
-                        ));
+                        if (graduationDate == null) {
+                            educationRun.setText(String.format(
+                                    "%s in %s. %s.",
+                                    education.getDegreeEarned(),
+                                    education.getMajor(),
+                                    education.getSchoolName()
+                            ));
+                        } else {
+                            educationRun.setText(String.format(
+                                    "%s in %s - %s. %s.",
+                                    education.getDegreeEarned(),
+                                    education.getMajor(),
+                                    graduationDate,
+                                    education.getSchoolName()
+                            ));
+                        }
 
                     });
 
