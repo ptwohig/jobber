@@ -18,7 +18,16 @@ public record DocumentLinkRecord(XWPFDocument document, Link link) {
     }
 
     public XWPFRun writeFullUrl(final XWPFParagraph paragraph) {
-        final var linkText = format(link.getUrl());
+        final var linkText = link.getUrl();
+        final var run = paragraph.createHyperlinkRun(link().getUrl());
+        run.setText(linkText);
+        run.setColor("0000FF");
+        run.setUnderline(UnderlinePatterns.SINGLE);
+        return run;
+    }
+
+    public XWPFRun writeFullUrlWithIcon(final XWPFParagraph paragraph) {
+        final var linkText = format("%s %s", link.getLinkType().getDisplayIcon(), link.getUrl());
         final var run = paragraph.createHyperlinkRun(link().getUrl());
         run.setText(linkText);
         run.setColor("0000FF");

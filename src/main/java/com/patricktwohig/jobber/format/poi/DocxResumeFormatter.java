@@ -2,22 +2,18 @@ package com.patricktwohig.jobber.format.poi;
 
 import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.model.*;
-import org.apache.poi.xwpf.usermodel.Borders;
-import org.apache.poi.xwpf.usermodel.XWPFAbstractNum;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyles;
 
+import javax.swing.text.html.Option;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.model.PositionType.EMPLOYEE;
@@ -363,6 +359,13 @@ public class DocxResumeFormatter implements ResumeFormatter {
                 final var headlineParagraph = createStandardParagraph();
                 headlineParagraph.setAlignment(LEFT);
 
+                final Stream<Supplier<XWPFRun>> websiteLink = Optional.ofNullable(position.getWebsite())
+                        .filter(l -> l.getUrl() != null && !l.getUrl().isBlank()).stream()
+                        .flatMap(link -> Stream.of(link).map(l -> () -> {
+                            final var record = new DocumentLinkRecord(document(), link);
+                            return record.writeFullUrl(headlineParagraph);
+                        }));
+
                 new SplitList.Builder()
                         .withDelimiter(() -> {
                             final var run = headlineParagraph.createRun();
@@ -375,7 +378,9 @@ public class DocxResumeFormatter implements ResumeFormatter {
                             run.setText(item);
                             run.setBold(HEADLINE_BOLD);
                             return run;
-                        })).build().write();
+                        }))
+                        .withRuns(websiteLink)
+                        .build().write();
 
                 final var accomplishments = position.getAccomplishmentStatements();
 
