@@ -346,15 +346,17 @@ public class DocxResumeFormatter implements ResumeFormatter {
                 if (position.getLocation() != null && !position.getLocation().isBlank())
                     headlineItems.add(position.getLocation());
 
-                final var startDate = position.getStartDate() == null
-                        ? "<<Start Date>>"
-                        : position.getStartDate();
+                final var startDate = position.getStartDate();
 
-                final var endDate = position.getEndDate() == null
-                        ? "Present" :
-                        position.getEndDate();
+                if (startDate != null) {
 
-                headlineItems.add(String.format("%s to %s", startDate, endDate));
+                    final var endDate = position.getEndDate() == null
+                            ? "Present" :
+                            position.getEndDate();
+
+                    headlineItems.add(String.format("%s to %s", startDate, endDate));
+
+                }
 
                 final var headlineParagraph = createStandardParagraph();
                 headlineParagraph.setAlignment(LEFT);
