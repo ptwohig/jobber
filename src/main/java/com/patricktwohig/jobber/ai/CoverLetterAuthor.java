@@ -1,6 +1,7 @@
 package com.patricktwohig.jobber.ai;
 
 import com.patricktwohig.jobber.model.CoverLetter;
+import com.patricktwohig.jobber.model.CoverLetterAuthoringResult;
 import com.patricktwohig.jobber.model.InteractiveCoverLetterResponse;
 import com.patricktwohig.jobber.model.Resume;
 import dev.langchain4j.service.SystemMessage;
@@ -17,6 +18,8 @@ public interface CoverLetterAuthor {
             1. Introduce the candidate, express interest in the job, and show understanding of the company's mission and values.
             2. Detail the candidate's qualifications and relate them to the job using key facts from the resume.
             3. Conclude with a call to action requesting an interview and express gratitude for the opportunity.
+            Include your remarks, summary of edits, and a score from 0 to 100. The score should be based on the
+            relevance of the resume and cover letter to the job description.
             """
     )
     @UserMessage(
@@ -26,7 +29,7 @@ public interface CoverLetterAuthor {
             Base Cover Letter - {{baseCoverLetter}}
             """
     )
-    CoverLetter tuneCoverLetterForResumeAndJobDescription(
+    CoverLetterAuthoringResult tuneCoverLetterForResumeAndJobDescription(
             @V("baseCoverLetter") CoverLetter baseCoverLetter,
             @V("jobSeekersResume") Resume jobseekersResume,
             @V("jobDescription") String jobDescription

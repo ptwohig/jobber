@@ -116,12 +116,20 @@ public class TuneResume implements Callable<Integer>, HasModules {
                         final var resume = documentInput.read(Resume.class, is);
                         final var jobDescriptionText = readJobDescription();
 
-                        final var authoredResumed = resumeAuthor.tuneResumeForPublicJobDescription(
+                        final var result = resumeAuthor.tuneResumeForPublicJobDescription(
                                 resume,
                                 jobDescriptionText
                         );
 
-                        final var postProcessedResume = postprocessor.apply(resume, authoredResumed);
+                        System.out.printf("Score: %s%%%nSummary:%n%s%nRemarks:%n%s%n",
+                                result.getScore(),
+                                result.getSummary(),
+                                result.getRemarks()
+                        );
+
+                        final var authoredResume = result.getResult();
+
+                        final var postProcessedResume = postprocessor.apply(resume, authoredResume);
 
                         if (output.isEmpty()) {
                                 formatters.getFormatter(TEXT).format(postProcessedResume, System.out);
@@ -145,7 +153,6 @@ public class TuneResume implements Callable<Integer>, HasModules {
                 System.out.println("Reading Job Description...");
 
                 try {
-
                         if (jobDescriptionUrl != null) {
                                 final var pageInput = injector.getInstance(PageInput.class);
                                 final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(LITERAL);

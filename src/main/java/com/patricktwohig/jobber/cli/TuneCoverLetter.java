@@ -137,12 +137,20 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
 
                         final var jobDescriptionText = readJobDescription();
 
-                        final var authoredResumed = coverLetterAuthor.tuneCoverLetterForResumeAndJobDescription(
+                        final var result = coverLetterAuthor.tuneCoverLetterForResumeAndJobDescription(
                                 coverLetter, resume,
                                 jobDescriptionText
                         );
 
-                        final var postProcessedCoverLetter = postprocessor.apply(coverLetter, authoredResumed);
+                        System.out.printf("Score: %s%%%nSummary:%n%s%nRemarks:%n%s%n",
+                                result.getScore(),
+                                result.getSummary(),
+                                result.getRemarks()
+                        );
+
+                        final var authoredCoverLetter = result.getResult();
+
+                        final var postProcessedCoverLetter = postprocessor.apply(coverLetter, authoredCoverLetter);
 
                         if (output.isEmpty()) {
                                 formatters.getFormatter(TEXT).format(postProcessedCoverLetter, System.out);
@@ -167,7 +175,6 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
                 System.out.println("Reading Job Description...");
 
                 try {
-
                         if (jobDescriptionUrl != null) {
                                 final var pageInput = injector.getInstance(PageInput.class);
                                 final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(LITERAL);
