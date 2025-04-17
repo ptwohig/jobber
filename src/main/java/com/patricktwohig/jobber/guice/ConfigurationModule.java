@@ -2,21 +2,21 @@ package com.patricktwohig.jobber.guice;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
-import com.google.inject.PrivateModule;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.Matcher;
-import com.google.inject.matcher.Matchers;
+import com.patricktwohig.jobber.config.Configuration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.google.inject.name.Names.named;
 
 public class ConfigurationModule extends AbstractModule {
 
-    private final List<ConfigurationRecord<?>> configurationRecordList = new ArrayList<>();
+    private final Map<String, ConfigurationRecord<?>> configurationRecordList = new LinkedHashMap<>();
 
     @Override
     protected void configure() {
@@ -42,14 +42,25 @@ public class ConfigurationModule extends AbstractModule {
             }
         });
 
-        configurationRecordList.forEach(r -> bind(r.key()).toInstance(r.value()));
+        configurationRecordList
+                .values()
+                .forEach(r -> bind(r.key()).toInstance(r.value()));
 
     }
 
-    public <T>ConfigurationModule add(final String key, final String value) {
+    public ConfigurationModule add(final Configuration configuration) {
+        configuration.stream().forEach(c -> add(c.key(), c.value()));
+        return this;
+    }
+
+    public ConfigurationModule add(final String key, final Optional<String> value) {
+        return value.map(v -> add(key, v)).orElse(this);
+    }
+
+    public <T> ConfigurationModule add(final String key, final String value) {
         final var guiceKey = Key.get(String.class, named(key));
         final var configurationRecord = new ConfigurationRecord<T>(guiceKey,value);
-        configurationRecordList.add(configurationRecord);
+        configurationRecordList.put(key, configurationRecord);
         return this;
     }
 

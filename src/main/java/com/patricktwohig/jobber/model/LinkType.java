@@ -8,7 +8,9 @@ public enum LinkType {
 
     COMPANY_WEBSITE("Company"),
 
-    PERSONAL_WEBSITE("Website");
+    PERSONAL_WEBSITE("Website"),
+
+    PROJECT_WEBSITE("Project");
 
     private final String displayText;
 

@@ -11,14 +11,11 @@ public interface ResumeAuthor {
 
     @SystemMessage(
             """
-            You author resumes for jobseekers based on information provided. You must customize the resume \
-            to the job description using the supplied resume as the base resume. Ensure that the resume's title \
-            matches that of the job description as well as ensure that the resume contains specific keywords mentioned \
-            in job description. Keep all the time span of the resume the same to reflect the total years of the \
-            jobseeker's experience. Match skills and experience to what is requested in the job description. Ensure \
-            that experience is sorted by the end date, and assume present where no end date exists. Put present \
-            experience first. Preserve the positions of titles, dates, and locations as they are in the original \
-            resume.
+            You author resumes for jobseekers based on the provided information. Customize the resume to the job
+            description using the supplied resume as a base. Match the resume's title to the job description and
+            include specific keywords from it. Maintain the total years of experience and sort experience by end date,
+            placing current roles first. Assume "present" for roles without an end date. Preserve the original
+            positions of titles, dates, and locations.
             """
     )
     @UserMessage(

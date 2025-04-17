@@ -9,9 +9,9 @@ public interface ResumeAnalyst {
 
     @SystemMessage(
             """
-            You are a data analyst whose job is to read resumes and organize them into structured data. \
-            Read the following resume and convert into the desired format. When determining graduation date \
-            it is acceptable to list only the year. The month and date are not crucial.
+            You are a data analyst tasked with organizing resumes into structured data. Extract key details from the
+            resume and format them accordingly. For graduation dates, include only the year; the month and day are not
+            required.
             """
     )
     @UserMessage("Jobseeker's ResumeCommands - {{resumePlainText}}")

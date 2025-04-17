@@ -6,7 +6,9 @@ public enum PositionType {
 
     EMPLOYEE("Employment"),
 
-    CONSULTANT("Consulting");
+    CONSULTANT("Consulting"),
+
+    OPEN_SOURCE("Open Source");
 
     private final String displayText;
 

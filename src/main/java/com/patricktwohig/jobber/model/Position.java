@@ -18,6 +18,8 @@ public class Position {
 
     private String endDate;
 
+    private Link website;
+
     private List<String> accomplishmentStatements;
 
     public String getTitle() {
@@ -76,29 +78,39 @@ public class Position {
         this.endDate = endDate;
     }
 
-    @Override
-    public String toString() {
-        return "Position{" +
-                "title='" + title + '\'' +
-                ", company='" + company + '\'' +
-                ", location='" + location + '\'' +
-                ", positionType=" + positionType +
-                ", startDate='" + startDate + '\'' +
-                ", endDate='" + endDate + '\'' +
-                ", accomplishmentStatements=" + accomplishmentStatements +
-                '}';
+    public Link getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(Link website) {
+        this.website = website;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Position position = (Position) o;
-        return Objects.equals(title, position.title) && Objects.equals(company, position.company) && Objects.equals(location, position.location) && positionType == position.positionType && Objects.equals(startDate, position.startDate) && Objects.equals(endDate, position.endDate) && Objects.equals(accomplishmentStatements, position.accomplishmentStatements);
+        return Objects.equals(getTitle(), position.getTitle()) && Objects.equals(getCompany(), position.getCompany()) && Objects.equals(getLocation(), position.getLocation()) && getPositionType() == position.getPositionType() && Objects.equals(getStartDate(), position.getStartDate()) && Objects.equals(getEndDate(), position.getEndDate()) && Objects.equals(getWebsite(), position.getWebsite()) && Objects.equals(getAccomplishmentStatements(), position.getAccomplishmentStatements());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, company, location, positionType, startDate, endDate, accomplishmentStatements);
+        return Objects.hash(getTitle(), getCompany(), getLocation(), getPositionType(), getStartDate(), getEndDate(), getWebsite(), getAccomplishmentStatements());
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Position{");
+        sb.append("title='").append(title).append('\'');
+        sb.append(", company='").append(company).append('\'');
+        sb.append(", location='").append(location).append('\'');
+        sb.append(", positionType=").append(positionType);
+        sb.append(", startDate='").append(startDate).append('\'');
+        sb.append(", endDate='").append(endDate).append('\'');
+        sb.append(", website=").append(website);
+        sb.append(", accomplishmentStatements=").append(accomplishmentStatements);
+        sb.append('}');
+        return sb.toString();
+    }
+
 }

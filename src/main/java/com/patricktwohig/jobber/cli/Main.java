@@ -1,7 +1,8 @@
 package com.patricktwohig.jobber.cli;
 
 import com.google.inject.Module;
-import com.patricktwohig.jobber.ai.Configuration;
+import com.patricktwohig.jobber.config.Configuration;
+import com.patricktwohig.jobber.config.PropertiesConfiguration;
 import com.patricktwohig.jobber.guice.AiServicesModule;
 import com.patricktwohig.jobber.guice.ConfigurationModule;
 import com.patricktwohig.jobber.guice.InMemoryChatMemoryModule;
@@ -62,11 +63,12 @@ public class Main implements HasModules {
                 new AiServicesModule(),
                 new InMemoryChatMemoryModule(),
                 new ConfigurationModule()
-                        .add(Configuration.API_TIMEOUT, apiTimeout.readInputString(LITERAL))
-                        .add(Configuration.LOG_API_CALLS, logApiCalls.readInputString(LITERAL))
-                        .add(Configuration.MESSAGE_MEMORY_COUNT, maxTokenCount.readInputString(LITERAL))
-                        .add(Configuration.OPENAI_MODEL, openAIModel.readInputString(LITERAL))
-                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.readInputString(LITERAL))
+                        .add(PropertiesConfiguration.fromUserHomeDirectory())
+                        .add(Configuration.API_TIMEOUT, apiTimeout.tryReadInputString(LITERAL))
+                        .add(Configuration.LOG_API_CALLS, logApiCalls.tryReadInputString(LITERAL))
+                        .add(Configuration.MESSAGE_MEMORY_COUNT, maxTokenCount.tryReadInputString(LITERAL))
+                        .add(Configuration.OPENAI_MODEL, openAIModel.tryReadInputString(LITERAL))
+                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.tryReadInputString(LITERAL))
         );
     }
 

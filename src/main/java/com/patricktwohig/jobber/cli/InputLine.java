@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.Format.LITERAL;
@@ -25,22 +26,25 @@ public record InputLine(Format format, String input, Charset charset) implements
 
     }
 
-    public String readInputString() {
-        return readInputString(LITERAL);
+    public String readInputString(final Format defaultFormat) {
+        return tryReadInputString(defaultFormat).orElseThrow(() -> new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT));
     }
 
-    public String readInputString(final Format defaultFormat) {
+    public Optional<String> tryReadInputString(final Format defaultFormat) {
         return switch (format == null ? defaultFormat : format) {
-            case LITERAL -> input;
-            case ENV -> System.getenv(input);
-            case JSON, TEXT -> readFile();
-            default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
+            case LITERAL -> Optional.ofNullable(input);
+            case ENV -> Optional.ofNullable(System.getenv(input));
+            case JSON, TEXT -> tryReadFile();
+            default -> Optional.empty();
         };
     }
 
-    private String readFile() {
+    private Optional<String> tryReadFile() {
         try {
-            return Files.readString(Path.of(input()));
+            final var result = Files.readString(Path.of(input()));
+            return Optional.of(result);
+        } catch (FileNotFoundException ex) {
+            return Optional.empty();
         } catch (IOException e) {
             throw new CliException(ExitCode.IO_EXCEPTION, e);
         }

@@ -11,15 +11,12 @@ public interface CoverLetterAuthor {
 
     @SystemMessage(
             """
-            You author cover letters for jobseekers based on information provided. You must customize each cover \
-            letter to the job description using the base cover letter. Write a cover letter for the supplied job \
-            description. Use the supplied cover letter and resume as the basis. Highlight key accomplishments from the \
-            resume and incoporate into the cover letter. Follow a three paragraph format. The first paragraph opens \
-            with a brief introduction expressing desire and interest in the job, as well as indicates the jobseeker \
-            understands the company's mission statement and core values. The second paragraph is a deeper in-depth \
-            description of the candidate's qualifications and how they most relate to the job. When authoring the \
-            second paragraph, use key facts from the job seeker's resume. Finally, end the letter with a brief call \
-            to action requesting and interview as well as expressing gratitude for the consideration.
+            You author cover letters for jobseekers based on provided information. Customize each cover letter to the
+            job description using the base cover letter and resume. Highlight key accomplishments from the resume and
+            incorporate them into the cover letter. Follow a three-paragraph format:
+            1. Introduce the candidate, express interest in the job, and show understanding of the company's mission and values.
+            2. Detail the candidate's qualifications and relate them to the job using key facts from the resume.
+            3. Conclude with a call to action requesting an interview and express gratitude for the opportunity.
             """
     )
     @UserMessage(
@@ -37,9 +34,8 @@ public interface CoverLetterAuthor {
 
     @SystemMessage(
             """
-            You author cover letters for jobseekers based on information provided. The jobseeker will describe the \
-            cover letter and what they want to modify. Adjust it according to the jobseeker's comments accordingly \
-            using both the supplied cover as a base.
+            You author cover letters for jobseekers based on the provided information. Modify the cover letter
+            according to the jobseeker's comments, using the supplied cover letter as a base.
             """
     )
     @UserMessage(

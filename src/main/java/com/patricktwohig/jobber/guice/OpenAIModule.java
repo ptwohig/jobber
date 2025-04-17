@@ -10,7 +10,7 @@ import jakarta.inject.Named;
 
 import java.time.Duration;
 
-import static com.patricktwohig.jobber.ai.Configuration.*;
+import static com.patricktwohig.jobber.config.Configuration.*;
 
 public class OpenAIModule extends PrivateModule {
 

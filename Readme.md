@@ -14,16 +14,4 @@ The basic workflow for Jobber is as follows:
 
 ## License
 
-This is licensed under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.txt). This means that if you use this code for any purpose you must make available 100% of your application's source code. I do intend and have the means to enforce this license if necessary.
-
-I am doing this because I believe ATS, in its current form, is overall bad for the job market. Having been a startup founder, hiring manager, and jobseeker over the last twenty years it's become obvious that such automated systems do a disservice to both employers and employees. Applicants are forced to tune their resume on an individual basis just to pass the first round of weeding-out while employers often times disqualified perfectly fine applicants of simple mistakes that the applicant doesn't know (see the illusion of choice fallacy).
-
-Automation clearly hasn't helped. And with may technologies not fully thought out, this hurts the applicants (and working class) more than it hurts employers.
-
-If you wish to use this for closed source projects, please email me and I am happy relicense this code under the Apache at no charge provided the following terms are met:
-
-* You are not developing ATS or similar applicant processing systems.
-* You are an educational, non-profit, or otherwise charitable or humanitarian institution.
-* You are using it for strictly personal uses.
-
-For any other inquiries, I'm happy to discuss further.
+This is licensed under the [AGPL](https://www.gnu.org/licenses/agpl-3.0.txt). Other inquires, please email me directly.

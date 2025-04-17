@@ -8,7 +8,7 @@ import dev.langchain4j.model.Tokenizer;
 import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import jakarta.inject.Named;
 
-import static com.patricktwohig.jobber.ai.Configuration.MESSAGE_MEMORY_COUNT;
+import static com.patricktwohig.jobber.config.Configuration.MESSAGE_MEMORY_COUNT;
 
 public class InMemoryChatMemoryModule extends PrivateModule {
 
