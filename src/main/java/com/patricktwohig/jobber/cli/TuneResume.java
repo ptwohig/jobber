@@ -121,7 +121,7 @@ public class TuneResume implements Callable<Integer>, HasModules {
                                 jobDescriptionText
                         );
 
-                        System.out.printf("Score: %s%%%nSummary:%n%s%nRemarks:%n%s%n",
+                        System.out.printf("%nScore: %s%%%n%nSummary:%n%s%n%nRemarks:%n%s%n%n",
                                 result.getScore(),
                                 result.getSummary(),
                                 result.getRemarks()
