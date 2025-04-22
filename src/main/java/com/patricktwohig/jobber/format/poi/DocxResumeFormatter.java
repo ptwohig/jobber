@@ -348,7 +348,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
                 final var startDate = position.getStartDate();
 
-                if (startDate != null) {
+                if (startDate != null && !startDate.isBlank()) {
 
                     final var endDate = position.getEndDate() == null
                             ? "Present" :

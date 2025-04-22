@@ -40,34 +40,4 @@ public interface JobDescriptionAnalyst {
             @V("jobDescription") String jobDescription
     );
 
-    @SystemMessage(
-            """
-            You analyze job descriptions and resumes. Provide feedback on how well the resume matches the
-            job description, including a relevance score (0-100), remarks, and a brief summary.
-            """
-    )
-    @UserMessage(
-            """
-            Job Description: {{jobDescription}}
-            """
-    )
-    GeneralRemarks analyzeResume(
-            @V("jobDescription") String jobDescription
-    );
-
-    @SystemMessage(
-            """
-            You analyze job descriptions and cover letters. Provide feedback on how well the cover letter matches the 
-            job description, including a relevance score (0-100), remarks, and a brief summary.            
-            """
-    )
-    @UserMessage(
-            """
-            Job Description: {{jobDescription}}
-            """
-    )
-    GeneralRemarks analyzeCoverLetter(
-            @V("jobDescription") String jobDescription
-    );
-
 }

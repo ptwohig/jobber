@@ -152,6 +152,8 @@ public class Assistant implements HasModules, Callable<Integer> {
         final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
         final var generalAssistant = injector.getInstance(GeneralAssistant.class);
         final var coverLetterAuthor = injector.getInstance(CoverLetterAuthor.class);
+        final var resumeAnalyst = injector.getInstance(ResumeAnalyst.class);
+        final var coverLetterAnalyst = injector.getInstance(CoverLetterAnalyst.class);
         final var jobsDescriptionAnalyst = injector.getInstance(JobDescriptionAnalyst.class);
 
         System.out.printf("Just give me a second to go over what you provided...%n");
@@ -210,19 +212,21 @@ public class Assistant implements HasModules, Callable<Integer> {
                     resultFormatter.format(resumeResponse, System.out);
                     resume = resumeResponse.getResume();
                     writeResume(resumeResponse);
+                    documentStore.upsertDocument(resumeResponse, resumeResponse.getFileName());
                 }
                 case UPDATE_COVER_LETTER_WITH_COMMENTS -> {
                     final var coverLetterResponse = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(prompt);
                     resultFormatter.format(coverLetterResponse, System.out);
                     coverLetter = coverLetterResponse.getCoverLetter();
                     writeCoverLetter(coverLetterResponse);
+                    documentStore.upsertDocument(coverLetterResponse, coverLetterResponse.getFileName());
                 }
                 case PROVIDE_RESUME_ANALYSIS -> {
-                    final var remarks = jobsDescriptionAnalyst.analyzeResume(jobDescriptionText);
+                    final var remarks = resumeAnalyst.analyzeResume(resume);
                     resultFormatter.format(remarks, System.out);
                 }
                 case PROVIDE_COVER_LETTER_ANALYSIS -> {
-                    final var remarks = jobsDescriptionAnalyst.analyzeCoverLetter(jobDescriptionText);
+                    final var remarks = coverLetterAnalyst.analyzeCoverLetter(coverLetter);
                     resultFormatter.format(remarks, System.out);
                 }
             }
@@ -273,6 +277,7 @@ public class Assistant implements HasModules, Callable<Integer> {
             try (final var os = Files.newOutputStream(fullFileName);
                  final var bos = new BufferedOutputStream(os)){
                 formatterTConsumer.accept(formatter, os);
+                System.out.printf("Wrote file %s%n", fullFileName);
             } catch (Exception e) {
                 System.err.println("Failed to format: " + e.getMessage());
             }
