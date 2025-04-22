@@ -1,6 +1,8 @@
 package com.patricktwohig.jobber.format.plain;
 
 import com.patricktwohig.jobber.format.GenericFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -8,11 +10,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class PlainTextGenericFormatter implements GenericFormatter {
+
+    private static final Logger logger = LoggerFactory.getLogger(PlainTextGenericFormatter.class);
 
     private static final String INDENT = "  "; // Two spaces for indentation
 
@@ -37,7 +42,11 @@ public class PlainTextGenericFormatter implements GenericFormatter {
         try {
             for (PropertyDescriptor propertyDescriptor : Introspector.getBeanInfo(object.getClass()).getPropertyDescriptors()) {
                 Method readMethod = propertyDescriptor.getReadMethod();
-                if (readMethod != null && !"class".equals(propertyDescriptor.getName())) {
+
+                if (readMethod != null
+                        && readMethod.canAccess(object)
+                        && Modifier.isPublic(readMethod.getModifiers())
+                        && !"class".equals(propertyDescriptor.getName())) {
 
                     Object value = readMethod.invoke(object);
                     String header = toTitleCase(propertyDescriptor.getName());
@@ -45,7 +54,11 @@ public class PlainTextGenericFormatter implements GenericFormatter {
 
                     if (value instanceof Collection<?> collection) {
                         for (Object item : collection) {
-                            writeIndented(writer, "- " + item, depth + 1);
+                            if (isBean(item)) {
+                                formatObject(item, writer, depth + 1);
+                            } else {
+                                writeIndented(writer, "- " + item, depth + 1);
+                            }
                         }
                     } else if (isBean(value)) {
                         formatObject(value, writer, depth + 1);
@@ -55,12 +68,19 @@ public class PlainTextGenericFormatter implements GenericFormatter {
                 }
             }
         } catch (Exception e) {
-            writer.println("Error processing object: " + e.getMessage());
+            logger.error("Could not format object: {}", object, e);
         }
+
     }
 
     private boolean isBean(Object object) {
-        return object != null && !(object instanceof String || object instanceof Number || object instanceof Boolean || object instanceof Character);
+        return object != null && !(
+                object instanceof String ||
+                object instanceof Number ||
+                object instanceof Boolean ||
+                object instanceof Character ||
+                object instanceof Enum<?>
+        );
     }
 
     private void writeIndented(PrintWriter writer, Object text, int depth) {
