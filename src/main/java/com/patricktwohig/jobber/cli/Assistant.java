@@ -192,7 +192,7 @@ public class Assistant implements HasModules, Callable<Integer> {
 
             switch (task) {
                 case NO_TASK_REQUESTED -> {
-                    final var generalFeedback = generalAssistant.provideGengq;eralFeedback(prompt);
+                    final var generalFeedback = generalAssistant.provideGeneralFeedback(prompt);
                     resultFormatter.format(generalFeedback, System.out);
                 }
                 case REVERT_RESUME -> {
