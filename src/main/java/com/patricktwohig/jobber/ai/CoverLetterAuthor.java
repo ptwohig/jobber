@@ -44,7 +44,7 @@ public interface CoverLetterAuthor {
     )
     @UserMessage(
             """
-            Jobseeker's Comments - {{jobSeekersComments}}
+            Jobseeker's Comments: {{jobSeekersComments}}
             """
     )
     InteractiveCoverLetterResponse tuneCoverLetterBasedOnJobSeekersComments(

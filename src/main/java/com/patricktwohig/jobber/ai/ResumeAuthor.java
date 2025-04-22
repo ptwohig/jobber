@@ -41,7 +41,6 @@ public interface ResumeAuthor {
     )
     @UserMessage(
             """
-            Base Resume: {{baseResume}}
             Jobseeker's Comments: {{jobSeekersComments}}
             """
     )
