@@ -18,7 +18,7 @@ public class FormatterSet<FormatterT> {
 
     private final Map<Format, FormatterT> formatters = new EnumMap<>(Format.class);
 
-    public FormatterSet(Class<FormatterT> formatterClass) {
+    public FormatterSet(final Class<FormatterT> formatterClass) {
         this.formatterClass = formatterClass;
     }
 

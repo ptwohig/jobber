@@ -72,7 +72,7 @@ public class TuneResume implements Callable<Integer>, HasModules {
         private Injector injector;
 
         private FormatterSet<ResumeFormatter> formatters = new FormatterSet<>(ResumeFormatter.class);
-       ;
+
         @Override
         public Stream<Module> get() {
 

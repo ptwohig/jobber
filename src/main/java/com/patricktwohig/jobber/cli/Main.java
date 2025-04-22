@@ -3,10 +3,7 @@ package com.patricktwohig.jobber.cli;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.config.Configuration;
 import com.patricktwohig.jobber.config.PropertiesConfiguration;
-import com.patricktwohig.jobber.guice.AiServicesModule;
-import com.patricktwohig.jobber.guice.ConfigurationModule;
-import com.patricktwohig.jobber.guice.InMemoryChatMemoryModule;
-import com.patricktwohig.jobber.guice.OpenAIModule;
+import com.patricktwohig.jobber.guice.*;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -18,7 +15,7 @@ import static com.patricktwohig.jobber.cli.Format.LITERAL;
 @Command(
         name = "jobber",
         description = "Performs AI-based resume, cover letter, job description analysis.",
-        subcommands = {HelpCommand.class, ResumeCommands.class, CoverLetterCommands.class}
+        subcommands = {HelpCommand.class, ResumeCommands.class, CoverLetterCommands.class, Assistant.class}
 )
 public class Main implements HasModules {
 
@@ -37,11 +34,18 @@ public class Main implements HasModules {
     private InputLine logApiCalls;
 
     @CommandLine.Option(
-            names = {"--openai-model"},
+            names = {"--openai-model-chat"},
             description = "The OpenAI LLM to use.",
             defaultValue = "gpt-4o"
     )
-    private InputLine openAIModel;
+    private InputLine openAIChatModel;
+
+    @CommandLine.Option(
+            names = {"--openai-model-embedding"},
+            description = "The OpenAI LLM to use.",
+            defaultValue = "text-embedding-ada-002"
+    )
+    private InputLine openAiEmbeddingModel;
 
     @CommandLine.Option(
             names = {"--openai-api-key"},
@@ -52,7 +56,7 @@ public class Main implements HasModules {
     @CommandLine.Option(
             names = "--max-message-count",
             description = "The maximum message memory count.",
-            defaultValue = "10"
+            defaultValue = "5"
     )
     private InputLine maxTokenCount;
 
@@ -62,12 +66,15 @@ public class Main implements HasModules {
                 new OpenAIModule(),
                 new AiServicesModule(),
                 new InMemoryChatMemoryModule(),
+                new InMemoryDocumentStoreModule(),
+                new InMemoryEmbeddingStoreModule(),
                 new ConfigurationModule()
                         .add(PropertiesConfiguration.fromUserHomeDirectory())
                         .add(Configuration.API_TIMEOUT, apiTimeout.tryReadInputString(LITERAL))
                         .add(Configuration.LOG_API_CALLS, logApiCalls.tryReadInputString(LITERAL))
                         .add(Configuration.MESSAGE_MEMORY_COUNT, maxTokenCount.tryReadInputString(LITERAL))
-                        .add(Configuration.OPENAI_MODEL, openAIModel.tryReadInputString(LITERAL))
+                        .add(Configuration.OPENAI_CHAT_MODEL, openAIChatModel.tryReadInputString(LITERAL))
+                        .add(Configuration.OPENAI_EMBEDDING_MODEL, openAiEmbeddingModel.tryReadInputString(LITERAL))
                         .add(Configuration.OPENAI_API_KEY, openAIApiKey.tryReadInputString(LITERAL))
         );
     }

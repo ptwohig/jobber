@@ -24,9 +24,9 @@ public interface CoverLetterAuthor {
     )
     @UserMessage(
             """
-            Job Description - {{jobDescription}}
-            Job Seeker's Resume - {{jobSeekersResume}}
-            Base Cover Letter - {{baseCoverLetter}}
+            Job Description: {{jobDescription}}
+            Job Seeker's Resume: {{jobSeekersResume}}
+            Base Cover Letter: {{baseCoverLetter}}
             """
     )
     CoverLetterAuthoringResult tuneCoverLetterForResumeAndJobDescription(

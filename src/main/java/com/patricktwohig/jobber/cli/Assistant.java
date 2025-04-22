@@ -1,0 +1,210 @@
+package com.patricktwohig.jobber.cli;
+
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.patricktwohig.jobber.ai.*;
+import com.patricktwohig.jobber.format.GenericFormatter;
+import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
+import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
+import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
+import com.patricktwohig.jobber.input.DocumentInput;
+import com.patricktwohig.jobber.input.PageInput;
+import com.patricktwohig.jobber.model.*;
+import picocli.CommandLine;
+
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.stream.Stream;
+
+import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
+import static com.patricktwohig.jobber.cli.Format.*;
+import static com.patricktwohig.jobber.model.Task.NO_TASK_REQUESTED;
+
+@CommandLine.Command(
+        name = "assistant",
+        description = "Provides interactive assistance with a specific job description.",
+        subcommands = {CommandLine.HelpCommand.class}
+)
+public class Assistant implements HasModules, Callable<Integer> {
+
+    @CommandLine.ParentCommand
+    private HasModules parent;
+
+    @CommandLine.Option(
+            names = {"-ir", "--input-resume"},
+            description = "The resume to read in from structured format.",
+            required = true
+    )
+    private InputLine inputResume;
+
+    @CommandLine.Option(
+            names = {"-ic", "--input-cover-letter"},
+            description = "The cover letter to read in from structured format.",
+            required = true
+    )
+    private InputLine inputCoverLetter;
+
+    @CommandLine.Option(
+            names = {"-jdt", "--job-description"},
+            description = "The text of the job description. Specify ",
+            defaultValue = "text:"
+    )
+    private InputLine jobDescription;
+
+    @CommandLine.Option(
+            names = {"-jdu", "--job-description-url"},
+            description = "The URL of the job description to use when authoring the resume."
+    )
+    private InputLine jobDescriptionUrl;
+
+    @CommandLine.Option(
+            names = {"-of", "--output-formats"},
+            description = "The resume output file."
+    )
+    private Set<Format> outputFormats = Set.of(Format.DOCX, Format.JSON);
+
+    @CommandLine.Option(
+            names = {"-od", "--output-directory"},
+            description = "The output directory."
+    )
+    private OutputLine outputDirectory;
+
+    @Override
+    public Stream<Module> get() {
+
+        final var documentInputModule = switch (inputResume.format(JSON)) {
+            case JSON -> new JsonDocumentInputModule();
+            default -> throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
+        };
+
+        if (!inputResume.format(JSON).equals(inputCoverLetter.format(JSON))) {
+            throw new CliException(ExitCode.UNSUPPORTED_INPUT_FORMAT);
+        }
+
+        return Stream.of(documentInputModule, new HtmlUnitPageInputModule(), new JacksonPostprocessorModule());
+
+    }
+
+    private Injector injector;
+
+    private Resume resume;
+
+    private CoverLetter coverLetter;
+
+    private String jobDescriptionText;
+
+    private final FormatterSetFactory formatterSetFactory = new FormatterSetFactory();
+
+    @Override
+    public Integer call() throws Exception {
+
+        injector = concat(parent).newInjector();
+
+        final var documentInput = injector.getInstance(DocumentInput.class);
+
+        try (var is = inputResume.readInputStream(JSON)) {
+            resume = documentInput.read(Resume.class, is);
+        }
+
+        try (var is = inputCoverLetter.readInputStream(JSON)) {
+            coverLetter = documentInput.read(CoverLetter.class, is);
+        }
+
+        jobDescriptionText = readJobDescription();
+
+        return runInteractive();
+
+    }
+
+    private String readJobDescription() throws IOException {
+        if (jobDescriptionUrl != null) {
+            final var pageInput = injector.getInstance(PageInput.class);
+            final var jobDescriptionUrl = this.jobDescriptionUrl.readInputString(LITERAL);
+            final var jobDescriptionText = pageInput.loadPage(jobDescriptionUrl);
+            return jobDescriptionText;
+        } else if (jobDescription != null) {
+            return jobDescription.readInputString(TEXT);
+        } else {
+            throw new CliException(INVALID_PARAMETER);
+        }
+    }
+
+    private Integer runInteractive() throws Exception {
+
+        final var resultFormatter = formatterSetFactory
+                .createFormatterSet(GenericFormatter.class)
+                .getFormatter(TEXT);
+
+        final var scanner = new Scanner(System.in);
+
+        final var taskResolver = injector.getInstance(TaskResolver.class);
+        final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
+        final var coverLetterAuthor = injector.getInstance(CoverLetterAuthor.class);
+        final var jobsDescriptionAnalyst = injector.getInstance(JobDescriptionAnalyst.class);
+
+        System.out.printf("Just give me a second to go over what you provided...%n");
+
+        final var documentStore = injector.getInstance(DocumentStore.class);
+        documentStore.upsertDocument(resume, "Resume for candidate.");
+        documentStore.upsertDocument(coverLetter, "Cover letter for candidate.");
+
+        System.out.printf("Now let me read the job description...%n");
+
+        final var generalRemarks = jobsDescriptionAnalyst.analyzeJobDescription(jobDescriptionText);
+        final var jobDescriptionSummary = jobsDescriptionAnalyst.summarizeJobDescription(jobDescriptionText);
+
+        System.out.printf("%nJob Description Summary:%n");
+        resultFormatter.format(jobDescriptionSummary, System.out);
+
+        System.out.printf("%nMy General Remarks:%n");
+        resultFormatter.format(generalRemarks, System.out);
+
+        Task task;
+
+        do {
+
+            System.out.print("> ");
+            final var prompt = scanner.nextLine();
+
+            if (prompt.isBlank()) {
+                task = NO_TASK_REQUESTED;
+                continue;
+            }
+
+            System.out.println("Just a moment...");
+            final var result = taskResolver.resolve(prompt);
+            System.out.println(result.getRemarks());
+
+            task = result.getTask();
+            task = (task == null) ? NO_TASK_REQUESTED : task;
+
+            switch (task) {
+                case UPDATE_RESUME_WITH_COMMENTS -> {
+                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(resume, prompt);
+                    resume = resumeResponse.getResume();
+                    resultFormatter.format(resumeResponse, System.out);
+                }
+                case UPDATE_COVER_LETTER_WITH_COMMENTS -> {
+                    final var coverLetterResponse = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(coverLetter, prompt);
+                    coverLetter = coverLetterResponse.getCoverLetter();
+                    resultFormatter.format(coverLetter, System.out);
+                }
+                case PROVIDE_RESUME_ANALYSIS -> {
+                    final var remarks = jobsDescriptionAnalyst.analyzeResume(jobDescriptionText, resume);
+                    resultFormatter.format(remarks, System.out);
+                }
+                case PROVIDE_COVER_LETTER_ANALYSIS -> {
+                    final var remarks = jobsDescriptionAnalyst.analyzeCoverLetter(jobDescriptionText, coverLetter);
+                    resultFormatter.format(remarks, System.out);
+                }
+            }
+
+        } while (!Task.QUIT.equals(task));
+
+        return 0;
+
+    }
+
+}

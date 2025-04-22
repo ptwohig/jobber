@@ -27,7 +27,12 @@ public interface Configuration {
     /**
      * Specifies the OpenAI model.
      */
-    String OPENAI_MODEL = "com.patricktwohig.jobber.openai.model";
+    String OPENAI_CHAT_MODEL = "com.patricktwohig.jobber.openai.chat.model";
+
+    /**
+     * Names the embedding model.
+     */
+    String OPENAI_EMBEDDING_MODEL = "com.patricktwohig.jobber.model.embedding.model";
 
     /**
      * The configuration property for the OpenAI API key.

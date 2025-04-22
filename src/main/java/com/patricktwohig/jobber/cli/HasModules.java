@@ -1,5 +1,7 @@
 package com.patricktwohig.jobber.cli;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Module;
 
 import java.util.function.Supplier;
@@ -23,6 +25,15 @@ public interface HasModules extends Supplier<Stream<Module>> {
      */
     default Module[] loadModules() {
         return get().toArray(Module[]::new);
+    }
+
+    /**
+     * Gets a new {@link Injector} for this instance.
+     *
+     * @return new {@link Injector}
+     */
+    default Injector newInjector() {
+        return Guice.createInjector(loadModules());
     }
 
 }

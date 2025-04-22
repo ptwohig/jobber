@@ -23,8 +23,8 @@ public interface ResumeAuthor {
     )
     @UserMessage(
             """
-            Original Resume - {{baseResume}}
-            Job Description - {{jobDescription}}
+            Original Resume: {{baseResume}}
+            Job Description: {{jobDescription}}
             """
     )
     ResumeAuthoringResult tuneResumeForPublicJobDescription(
@@ -32,16 +32,16 @@ public interface ResumeAuthor {
             @V("jobDescription") String jobDescription
     );
 
-    @UserMessage(
-            """
-            Base Resume - {{baseResume}}
-            Jobseeker's Comments - {{jobSeekersComments}}
-            """
-    )
     @SystemMessage(
             """
             You author resumes for jobseekers based on information provided. The jobseeker will describe the \
             resume and what they want to see. Adjust it according to the jobseeker's comments.
+            """
+    )
+    @UserMessage(
+            """
+            Base Resume: {{baseResume}}
+            Jobseeker's Comments: {{jobSeekersComments}}
             """
     )
     InteractiveResumeResponse tuneResumeBasedOnJobSeekersComments(

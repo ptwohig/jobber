@@ -148,7 +148,7 @@ public class TuneCoverLetter implements Callable<Integer>, HasModules {
                                 result.getRemarks()
                         );
 
-                        final var authoredCoverLetter = result.getResult();
+                        final var authoredCoverLetter = result.getCoverLetter();
 
                         final var postProcessedCoverLetter = postprocessor.apply(coverLetter, authoredCoverLetter);
 
