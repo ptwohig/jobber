@@ -49,7 +49,6 @@ public interface JobDescriptionAnalyst {
     @UserMessage(
             """
             Job Description: {{jobDescription}}
-            Resume: {{resume}}
             """
     )
     GeneralRemarks analyzeResume(

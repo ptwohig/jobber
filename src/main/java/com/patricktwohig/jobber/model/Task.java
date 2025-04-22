@@ -16,6 +16,16 @@ public enum Task {
     QUIT("The prompt is requesting to quit the application."),
 
     /**
+     * Reverses the resume to the original version.
+     */
+    REVERT_RESUME("Revert the resume to the original version."),
+
+    /**
+     * Reverses the resume to the original version.
+     */
+    REVERT_COVER_LETTER("Revert the cover letter to the original version."),
+
+    /**
      * The user requests general analysis on the resume.
      */
     PROVIDE_RESUME_ANALYSIS("Give feedback on a resume based on the job description."),

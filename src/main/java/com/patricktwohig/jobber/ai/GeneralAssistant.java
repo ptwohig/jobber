@@ -3,6 +3,7 @@ package com.patricktwohig.jobber.ai;
 import com.patricktwohig.jobber.model.GeneralFeedback;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 
 public interface GeneralAssistant {
 
@@ -14,6 +15,6 @@ public interface GeneralAssistant {
             """
     )
     @UserMessage("{{prompt}}")
-    GeneralFeedback provideGeneralFeedback(String prompt);
+    GeneralFeedback provideGeneralFeedback(@V("prompt") String prompt);
 
 }

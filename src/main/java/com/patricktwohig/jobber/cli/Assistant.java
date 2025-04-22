@@ -111,19 +111,20 @@ public class Assistant implements HasModules, Callable<Integer> {
         injector = concat(parent).newInjector();
 
         final var documentInput = injector.getInstance(DocumentInput.class);
-
-        try (var is = inputResume.readInputStream(JSON)) {
-            resume = documentInput.read(Resume.class, is);
-        }
-
-        try (var is = inputCoverLetter.readInputStream(JSON)) {
-            coverLetter = documentInput.read(CoverLetter.class, is);
-        }
-
+        resume = readInput(inputResume, Resume.class, documentInput);
+        coverLetter = readInput(inputCoverLetter, CoverLetter.class, documentInput);
         jobDescriptionText = readJobDescription();
 
         return runInteractive();
 
+    }
+
+    private <T> T readInput(final InputLine input,
+                            final Class<T> type,
+                            final DocumentInput documentInput) throws IOException {
+        try (var is = input.readInputStream(JSON)) {
+            return documentInput.read(type, is);
+        }
     }
 
     private String readJobDescription() throws IOException {
@@ -191,11 +192,21 @@ public class Assistant implements HasModules, Callable<Integer> {
 
             switch (task) {
                 case NO_TASK_REQUESTED -> {
-                    final var generalFeedback = generalAssistant.provideGeneralFeedback(prompt);
+                    final var generalFeedback = generalAssistant.provideGengq;eralFeedback(prompt);
                     resultFormatter.format(generalFeedback, System.out);
                 }
+                case REVERT_RESUME -> {
+                    final var documentInput = injector.getInstance(DocumentInput.class);
+                    resume = readInput(inputResume, Resume.class, documentInput);
+                    resultFormatter.format(resume, System.out);
+                }
+                case REVERT_COVER_LETTER -> {
+                    final var documentInput = injector.getInstance(DocumentInput.class);
+                    coverLetter = readInput(inputCoverLetter, CoverLetter.class, documentInput);
+                    resultFormatter.format(coverLetter, System.out);
+                }
                 case UPDATE_RESUME_WITH_COMMENTS -> {
-                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(prompt);
+                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(resume, prompt);
                     resultFormatter.format(resumeResponse, System.out);
                     resume = resumeResponse.getResume();
                     writeResume(resumeResponse);
@@ -253,10 +264,10 @@ public class Assistant implements HasModules, Callable<Integer> {
                     .findFirst()
                     .orElseThrow(() -> new CliException(UNSUPPORTED_OUTPUT_FORMAT));
 
-            var fullFileName = outputDirectory.resolve(fileName + "." + suffix).toAbsolutePath();
+            var fullFileName = outputDirectory.resolve(fileName + suffix).toAbsolutePath();
 
             for (int i = 0; Files.exists(fullFileName); i++) {
-                fullFileName = outputDirectory.resolve(fileName + "_" + i + "." + suffix).toAbsolutePath();
+                fullFileName = outputDirectory.resolve(fileName + "_" + i + suffix).toAbsolutePath();
             }
 
             try (final var os = Files.newOutputStream(fullFileName);
