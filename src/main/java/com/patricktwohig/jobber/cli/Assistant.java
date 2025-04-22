@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
@@ -199,27 +198,43 @@ public class Assistant implements HasModules, Callable<Integer> {
                 }
                 case REVERT_RESUME -> {
                     final var documentInput = injector.getInstance(DocumentInput.class);
+                    documentStore.remove(resume);
                     resume = readInput(inputResume, Resume.class, documentInput);
                     resultFormatter.format(resume, System.out);
                 }
                 case REVERT_COVER_LETTER -> {
                     final var documentInput = injector.getInstance(DocumentInput.class);
+                    documentStore.remove(coverLetter);
                     coverLetter = readInput(inputCoverLetter, CoverLetter.class, documentInput);
                     resultFormatter.format(coverLetter, System.out);
                 }
                 case UPDATE_RESUME_WITH_COMMENTS -> {
-                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(resume, prompt);
+
+                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(
+                            resume,
+                            jobDescriptionSummary,
+                            prompt
+                    );
+
                     resultFormatter.format(resumeResponse, System.out);
                     resume = resumeResponse.getResume();
                     writeResume(resumeResponse);
                     documentStore.upsertDocument(resumeResponse, resumeResponse.getFileName());
+
                 }
                 case UPDATE_COVER_LETTER_WITH_COMMENTS -> {
-                    final var coverLetterResponse = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(prompt);
+
+                    final var coverLetterResponse = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(
+                            coverLetter,
+                            jobDescriptionSummary,
+                            prompt
+                    );
+
                     resultFormatter.format(coverLetterResponse, System.out);
                     coverLetter = coverLetterResponse.getCoverLetter();
                     writeCoverLetter(coverLetterResponse);
                     documentStore.upsertDocument(coverLetterResponse, coverLetterResponse.getFileName());
+
                 }
                 case PROVIDE_RESUME_ANALYSIS -> {
                     final var remarks = resumeAnalyst.analyzeResume(resume);

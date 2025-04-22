@@ -1,9 +1,6 @@
 package com.patricktwohig.jobber.ai;
 
-import com.patricktwohig.jobber.model.CoverLetter;
-import com.patricktwohig.jobber.model.CoverLetterAuthoringResult;
-import com.patricktwohig.jobber.model.InteractiveCoverLetterResponse;
-import com.patricktwohig.jobber.model.Resume;
+import com.patricktwohig.jobber.model.*;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -66,6 +63,27 @@ public interface CoverLetterAuthor {
     )
     InteractiveCoverLetterResponse tuneCoverLetterBasedOnJobSeekersComments(
             @V("baseCoverLetter") CoverLetter baseCoverLetter,
+            @V("jobSeekersComments") String jobSeekersComments
+    );
+
+
+    @SystemMessage(
+            """
+            You author cover letters for jobseekers based on the provided information. Modify the cover letter
+            according to the jobseeker's comments, using the supplied cover letter as a base. Provide a brief filename
+            without an extension.
+            """
+    )
+    @UserMessage(
+            """
+            Base Cover Letter:{{baseCoverLetter}}
+            Job Description Summary: {{jobDescriptionSummary}}
+            Jobseeker's Comments: {{jobSeekersComments}}
+            """
+    )
+    InteractiveCoverLetterResponse tuneCoverLetterBasedOnJobSeekersComments(
+            @V("baseCoverLetter") CoverLetter baseCoverLetter,
+            @V("jobDescriptionSummary") JobDescriptionSummary jobDescriptionSummary,
             @V("jobSeekersComments") String jobSeekersComments
     );
 

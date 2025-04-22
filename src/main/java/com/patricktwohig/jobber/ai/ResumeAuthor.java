@@ -1,6 +1,7 @@
 package com.patricktwohig.jobber.ai;
 
 import com.patricktwohig.jobber.model.InteractiveResumeResponse;
+import com.patricktwohig.jobber.model.JobDescriptionSummary;
 import com.patricktwohig.jobber.model.Resume;
 import com.patricktwohig.jobber.model.ResumeAuthoringResult;
 import dev.langchain4j.service.SystemMessage;
@@ -64,6 +65,27 @@ public interface ResumeAuthor {
     )
     InteractiveResumeResponse tuneResumeBasedOnJobSeekersComments(
             @V("baseResume") Resume baseResume,
+            @V("jobSeekersComments") String jobSeekersComments
+    );
+
+    @SystemMessage(
+            """
+            You author resumes for jobseekers based on information provided. The jobseeker will describe the \
+            resume and what they want to see. Adjust it according to the jobseeker's comments. Preserve all \
+            positions, including their titles, dates, and locations, and ensure no sections are removed. Provide \
+            a brief filename without an extension.
+            """
+    )
+    @UserMessage(
+            """
+            Base Resume: {{baseResume}}
+            Job Description Summary: {{jobDescriptionSummary}}
+            Jobseeker's Comments: {{jobSeekersComments}}
+            """
+    )
+    InteractiveResumeResponse tuneResumeBasedOnJobSeekersComments(
+            @V("baseResume") Resume baseResume,
+            @V("jobDescriptionSummary") JobDescriptionSummary jobDescriptionSummary,
             @V("jobSeekersComments") String jobSeekersComments
     );
 
