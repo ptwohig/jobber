@@ -38,7 +38,24 @@ public interface CoverLetterAuthor {
     @SystemMessage(
             """
             You author cover letters for jobseekers based on the provided information. Modify the cover letter
-            according to the jobseeker's comments, using the supplied cover letter as a base.
+            according to the jobseeker's comments, using the supplied cover letter as a base. Provide a brief filename
+            without an extension.
+            """
+    )
+    @UserMessage(
+            """
+            Jobseeker's Comments - {{jobSeekersComments}}
+            """
+    )
+    InteractiveCoverLetterResponse tuneCoverLetterBasedOnJobSeekersComments(
+            @V("jobSeekersComments") String jobSeekersComments
+    );
+
+    @SystemMessage(
+            """
+            You author cover letters for jobseekers based on the provided information. Modify the cover letter
+            according to the jobseeker's comments, using the supplied cover letter as a base. Provide a brief filename
+            without an extension.
             """
     )
     @UserMessage(

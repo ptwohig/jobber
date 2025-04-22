@@ -10,6 +10,8 @@ public class InteractiveResumeResponse {
 
     private String summary;
 
+    private String fileName;
+
     public Resume getResume() {
         return resume;
     }
@@ -34,26 +36,34 @@ public class InteractiveResumeResponse {
         this.summary = summary;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         InteractiveResumeResponse that = (InteractiveResumeResponse) o;
-        return Objects.equals(getResume(), that.getResume()) && Objects.equals(getRemarks(), that.getRemarks()) && Objects.equals(getSummary(), that.getSummary());
+        return Objects.equals(resume, that.resume) && Objects.equals(remarks, that.remarks) && Objects.equals(summary, that.summary) && Objects.equals(fileName, that.fileName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getResume(), getRemarks(), getSummary());
+        return Objects.hash(resume, remarks, summary, fileName);
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("InteractiveResumeResponse{");
-        sb.append("resume=").append(resume);
-        sb.append(", remarks='").append(remarks).append('\'');
-        sb.append(", summary='").append(summary).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "InteractiveResumeResponse{" +
+                "resume=" + resume +
+                ", remarks='" + remarks + '\'' +
+                ", summary='" + summary + '\'' +
+                ", fileName='" + fileName + '\'' +
+                '}';
     }
 
 }

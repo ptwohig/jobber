@@ -8,6 +8,8 @@ public class TaskResult {
 
     private String remarks;
 
+    private Approval approval;
+
     public Task getTask() {
         return task;
     }
@@ -24,25 +26,33 @@ public class TaskResult {
         this.remarks = remarks;
     }
 
+    public Approval getApproval() {
+        return approval;
+    }
+
+    public void setApproval(Approval approval) {
+        this.approval = approval;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         TaskResult that = (TaskResult) o;
-        return getTask() == that.getTask() && Objects.equals(getRemarks(), that.getRemarks());
+        return task == that.task && Objects.equals(remarks, that.remarks) && approval == that.approval;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getTask(), getRemarks());
+        return Objects.hash(task, remarks, approval);
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("TaskResult{");
-        sb.append("task=").append(task);
-        sb.append(", response='").append(remarks).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return "TaskResult{" +
+                "task=" + task +
+                ", remarks='" + remarks + '\'' +
+                ", approval=" + approval +
+                '}';
     }
-
+    
 }

@@ -7,12 +7,16 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.Format.LITERAL;
 import static com.patricktwohig.jobber.cli.Format.PREFIX_DELIMITER;
+import static java.util.function.Predicate.not;
 
 public record InputLine(Format format, String input, Charset charset) implements HasFormat {
+
+    public static final InputLine EMPTY = new InputLine(LITERAL, "", Charset.defaultCharset());
 
     public InputLine {
 
@@ -32,9 +36,9 @@ public record InputLine(Format format, String input, Charset charset) implements
 
     public Optional<String> tryReadInputString(final Format defaultFormat) {
         return switch (format == null ? defaultFormat : format) {
-            case LITERAL -> Optional.ofNullable(input);
-            case ENV -> Optional.ofNullable(System.getenv(input));
-            case JSON, TEXT -> tryReadFile();
+            case LITERAL -> Optional.ofNullable(input).filter(not(String::isBlank));
+            case ENV -> Optional.ofNullable(System.getenv(input)).filter(not(String::isBlank));
+            case JSON, TEXT -> tryReadFile().filter(not(String::isBlank));
             default -> Optional.empty();
         };
     }

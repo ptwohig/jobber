@@ -19,6 +19,19 @@ public class PropertiesConfiguration implements Configuration {
 
     private static final String DEFAULT_FILE_NAME = "jobber.properties";
 
+    private static final Properties DEFAULT_PROPERTIES = new Properties();
+
+    static {
+        DEFAULT_PROPERTIES.put(API_TIMEOUT, "180");
+        DEFAULT_PROPERTIES.put(LOG_API_CALLS, "false");
+        DEFAULT_PROPERTIES.put(OPENAI_CHAT_MODEL, "gpt-4o");
+        DEFAULT_PROPERTIES.put(OPENAI_EMBEDDING_MODEL, "text-embedding-ada-002");
+        DEFAULT_PROPERTIES.put(MESSAGE_MEMORY_COUNT, "10");
+        DEFAULT_PROPERTIES.put(EMBEDDING_PARALLEL_THREADS, "24");
+        DEFAULT_PROPERTIES.put(EMBEDDING_MAX_SEGMENT_SIZE_CHARS, "200");
+        DEFAULT_PROPERTIES.put(EMBEDDING_MAX_SEGMENT_OVERLAP_CHARS, "20");
+    }
+
     private final Properties properties = new Properties();
 
     /**
@@ -33,6 +46,7 @@ public class PropertiesConfiguration implements Configuration {
      */
     public PropertiesConfiguration(final Path propertiesFilePath) {
         try (InputStream input = Files.newInputStream(propertiesFilePath)) {
+            properties.putAll(DEFAULT_PROPERTIES);
             properties.load(input);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to load properties file: " + propertiesFilePath, e);

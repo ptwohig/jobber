@@ -16,11 +16,6 @@ public enum Task {
     QUIT("The prompt is requesting to quit the application."),
 
     /**
-     * Saves all edits to the documents.
-     */
-    SAVE_ALL_EDITS("Saves edits to documents."),
-
-    /**
      * The user requests general analysis on the resume.
      */
     PROVIDE_RESUME_ANALYSIS("Give feedback on a resume based on the job description."),

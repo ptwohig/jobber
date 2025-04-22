@@ -40,6 +40,21 @@ public interface Configuration {
     String OPENAI_API_KEY = "com.patricktwohig.jobber.openai.api.key";
 
     /**
+     * The number of parallel embedding operations to perform.
+     */
+    String EMBEDDING_PARALLEL_THREADS = "com.patricktwohig.jobber.embedding.parallel.threads";
+
+    /**
+     * The maximum segment size in characters for the embedding model.
+     */
+    String EMBEDDING_MAX_SEGMENT_SIZE_CHARS = "com.patricktwohig.jobber.embedding.max.segment.size.chars";
+
+    /**
+     * The maximum segment overlap in characters for the embedding model.
+     */
+    String EMBEDDING_MAX_SEGMENT_OVERLAP_CHARS = "com.patricktwohig.jobber.embedding.max.segment.overlap.chars";
+
+    /**
      * Streams all {@link ConfigurationParameter}s.
      * @return a {@link Stream}
      */

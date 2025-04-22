@@ -3,7 +3,9 @@ package com.patricktwohig.jobber.cli;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.*;
+import com.patricktwohig.jobber.format.CoverLetterFormatter;
 import com.patricktwohig.jobber.format.GenericFormatter;
+import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
 import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
 import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
@@ -12,13 +14,19 @@ import com.patricktwohig.jobber.input.PageInput;
 import com.patricktwohig.jobber.model.*;
 import picocli.CommandLine;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
+import static com.patricktwohig.jobber.cli.ExitCode.UNSUPPORTED_OUTPUT_FORMAT;
 import static com.patricktwohig.jobber.cli.Format.*;
 import static com.patricktwohig.jobber.model.Task.NO_TASK_REQUESTED;
 
@@ -48,8 +56,7 @@ public class Assistant implements HasModules, Callable<Integer> {
 
     @CommandLine.Option(
             names = {"-jdt", "--job-description"},
-            description = "The text of the job description. Specify ",
-            defaultValue = "text:"
+            description = "The text of the job description. Specify "
     )
     private InputLine jobDescription;
 
@@ -67,9 +74,10 @@ public class Assistant implements HasModules, Callable<Integer> {
 
     @CommandLine.Option(
             names = {"-od", "--output-directory"},
-            description = "The output directory."
+            description = "The output directory.",
+            defaultValue = "."
     )
-    private OutputLine outputDirectory;
+    private Path outputDirectory;
 
     @Override
     public Stream<Module> get() {
@@ -141,6 +149,7 @@ public class Assistant implements HasModules, Callable<Integer> {
 
         final var taskResolver = injector.getInstance(TaskResolver.class);
         final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
+        final var generalAssistant = injector.getInstance(GeneralAssistant.class);
         final var coverLetterAuthor = injector.getInstance(CoverLetterAuthor.class);
         final var jobsDescriptionAnalyst = injector.getInstance(JobDescriptionAnalyst.class);
 
@@ -181,22 +190,28 @@ public class Assistant implements HasModules, Callable<Integer> {
             task = (task == null) ? NO_TASK_REQUESTED : task;
 
             switch (task) {
+                case NO_TASK_REQUESTED -> {
+                    final var generalFeedback = generalAssistant.provideGeneralFeedback(prompt);
+                    resultFormatter.format(generalFeedback, System.out);
+                }
                 case UPDATE_RESUME_WITH_COMMENTS -> {
-                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(resume, prompt);
-                    resume = resumeResponse.getResume();
+                    final var resumeResponse = resumeAuthor.tuneResumeBasedOnJobSeekersComments(prompt);
                     resultFormatter.format(resumeResponse, System.out);
+                    resume = resumeResponse.getResume();
+                    writeResume(resumeResponse);
                 }
                 case UPDATE_COVER_LETTER_WITH_COMMENTS -> {
-                    final var coverLetterResponse = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(coverLetter, prompt);
+                    final var coverLetterResponse = coverLetterAuthor.tuneCoverLetterBasedOnJobSeekersComments(prompt);
+                    resultFormatter.format(coverLetterResponse, System.out);
                     coverLetter = coverLetterResponse.getCoverLetter();
-                    resultFormatter.format(coverLetter, System.out);
+                    writeCoverLetter(coverLetterResponse);
                 }
                 case PROVIDE_RESUME_ANALYSIS -> {
-                    final var remarks = jobsDescriptionAnalyst.analyzeResume(jobDescriptionText, resume);
+                    final var remarks = jobsDescriptionAnalyst.analyzeResume(jobDescriptionText);
                     resultFormatter.format(remarks, System.out);
                 }
                 case PROVIDE_COVER_LETTER_ANALYSIS -> {
-                    final var remarks = jobsDescriptionAnalyst.analyzeCoverLetter(jobDescriptionText, coverLetter);
+                    final var remarks = jobsDescriptionAnalyst.analyzeCoverLetter(jobDescriptionText);
                     resultFormatter.format(remarks, System.out);
                 }
             }
@@ -205,6 +220,58 @@ public class Assistant implements HasModules, Callable<Integer> {
 
         return 0;
 
+    }
+
+    private void writeResume(final InteractiveResumeResponse resumeResponse) {
+        write(
+            resumeResponse.getFileName(),
+            ResumeFormatter.class,
+            (formatter, os) -> formatter.format(resumeResponse.getResume(), os)
+        );
+    }
+
+    private void writeCoverLetter(final InteractiveCoverLetterResponse coverLetterResponse) {
+        write(
+                coverLetterResponse.getFileName(),
+                CoverLetterFormatter.class,
+                (formatter, os) -> formatter.format(coverLetterResponse.getCoverLetter(), os)
+        );
+    }
+
+    private <FormatterT> void write(
+            final String fileName,
+            final Class<FormatterT> formatterTClass,
+            final FormatterConsumer<FormatterT> formatterTConsumer) {
+        outputFormats.forEach(format -> {
+
+            final var formatter = formatterSetFactory
+                    .createFormatterSet(formatterTClass)
+                    .getFormatter(format);
+
+            final var suffix = format
+                    .suffixes()
+                    .findFirst()
+                    .orElseThrow(() -> new CliException(UNSUPPORTED_OUTPUT_FORMAT));
+
+            var fullFileName = outputDirectory.resolve(fileName + "." + suffix).toAbsolutePath();
+
+            for (int i = 0; Files.exists(fullFileName); i++) {
+                fullFileName = outputDirectory.resolve(fileName + "_" + i + "." + suffix).toAbsolutePath();
+            }
+
+            try (final var os = Files.newOutputStream(fullFileName);
+                 final var bos = new BufferedOutputStream(os)){
+                formatterTConsumer.accept(formatter, os);
+            } catch (Exception e) {
+                System.err.println("Failed to format: " + e.getMessage());
+            }
+
+        });
+    }
+
+    @FunctionalInterface
+    private interface FormatterConsumer<FormatterT> {
+        void accept(FormatterT formatter, OutputStream os) throws IOException;
     }
 
 }

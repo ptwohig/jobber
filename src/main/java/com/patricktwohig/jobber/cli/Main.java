@@ -11,6 +11,7 @@ import picocli.CommandLine.HelpCommand;
 import java.util.stream.Stream;
 
 import static com.patricktwohig.jobber.cli.Format.LITERAL;
+import static com.patricktwohig.jobber.config.Configuration.*;
 
 @Command(
         name = "jobber",
@@ -21,31 +22,29 @@ public class Main implements HasModules {
 
     @CommandLine.Option(
             names = {"-to", "--api-timeout"},
-            description = "The API Call timeout. Expressed in seconds.",
-            defaultValue = "180"
+            description = "The API Call timeout. Expressed in seconds."
     )
-    private InputLine apiTimeout;
+    private InputLine apiTimeout = InputLine.EMPTY;
 
     @CommandLine.Option(
             names = {"-log", "--log-api-calls"},
-            description = "Logs all API Calls for the purposes of debugging.",
-            defaultValue = "false"
+            description = "Logs all API Calls for the purposes of debugging."
     )
-    private InputLine logApiCalls;
+    private InputLine logApiCalls = InputLine.EMPTY;
 
     @CommandLine.Option(
             names = {"--openai-model-chat"},
             description = "The OpenAI LLM to use.",
             defaultValue = "gpt-4o"
     )
-    private InputLine openAIChatModel;
+    private InputLine openAIChatModel = InputLine.EMPTY;
 
     @CommandLine.Option(
             names = {"--openai-model-embedding"},
             description = "The OpenAI LLM to use.",
             defaultValue = "text-embedding-ada-002"
     )
-    private InputLine openAiEmbeddingModel;
+    private InputLine openAiEmbeddingModel = InputLine.EMPTY;
 
     @CommandLine.Option(
             names = {"--openai-api-key"},
@@ -55,10 +54,27 @@ public class Main implements HasModules {
 
     @CommandLine.Option(
             names = "--max-message-count",
-            description = "The maximum message memory count.",
-            defaultValue = "5"
+            description = "The maximum message memory count."
     )
-    private InputLine maxTokenCount;
+    private InputLine maxMessageCount = InputLine.EMPTY;
+
+    @CommandLine.Option(
+            names = "--embedding-parallel-threads",
+            description = "The number of parallel threads to use when embedding."
+    )
+    private InputLine embeddingParallelThreads = InputLine.EMPTY;
+
+    @CommandLine.Option(
+            names = "--embedding-max-segment-size-chars",
+            description = "The maximum number of segment size in characters to use when embedding."
+    )
+    private InputLine embeddingMaxSegmentSizeChars = InputLine.EMPTY;
+
+    @CommandLine.Option(
+            names = "--embedding-max-overlap-size-chars",
+            description = "The maximum number of overlap size in characters to use when embedding."
+    )
+    private InputLine embeddingMaxOverlapSizeChars = InputLine.EMPTY;
 
     @Override
     public Stream<Module> get() {
@@ -67,15 +83,17 @@ public class Main implements HasModules {
                 new AiServicesModule(),
                 new InMemoryChatMemoryModule(),
                 new InMemoryDocumentStoreModule(),
-                new InMemoryEmbeddingStoreModule(),
                 new ConfigurationModule()
                         .add(PropertiesConfiguration.fromUserHomeDirectory())
-                        .add(Configuration.API_TIMEOUT, apiTimeout.tryReadInputString(LITERAL))
-                        .add(Configuration.LOG_API_CALLS, logApiCalls.tryReadInputString(LITERAL))
-                        .add(Configuration.MESSAGE_MEMORY_COUNT, maxTokenCount.tryReadInputString(LITERAL))
-                        .add(Configuration.OPENAI_CHAT_MODEL, openAIChatModel.tryReadInputString(LITERAL))
-                        .add(Configuration.OPENAI_EMBEDDING_MODEL, openAiEmbeddingModel.tryReadInputString(LITERAL))
-                        .add(Configuration.OPENAI_API_KEY, openAIApiKey.tryReadInputString(LITERAL))
+                        .add(API_TIMEOUT, apiTimeout.tryReadInputString(LITERAL))
+                        .add(LOG_API_CALLS, logApiCalls.tryReadInputString(LITERAL))
+                        .add(MESSAGE_MEMORY_COUNT, maxMessageCount.tryReadInputString(LITERAL))
+                        .add(OPENAI_CHAT_MODEL, openAIChatModel.tryReadInputString(LITERAL))
+                        .add(OPENAI_EMBEDDING_MODEL, openAiEmbeddingModel.tryReadInputString(LITERAL))
+                        .add(OPENAI_API_KEY, openAIApiKey.tryReadInputString(LITERAL))
+                        .add(EMBEDDING_PARALLEL_THREADS, embeddingParallelThreads.tryReadInputString(LITERAL))
+                        .add(EMBEDDING_MAX_SEGMENT_SIZE_CHARS, embeddingMaxSegmentSizeChars.tryReadInputString(LITERAL))
+                        .add(EMBEDDING_MAX_SEGMENT_OVERLAP_CHARS, embeddingMaxOverlapSizeChars.tryReadInputString(LITERAL))
         );
     }
 

@@ -18,6 +18,18 @@ public class AiServicesModule extends PrivateModule {
         expose(CoverLetterAuthor.class);
         expose(CoverLetterAnalyst.class);
         expose(JobDescriptionAnalyst.class);
+        expose(GeneralAssistant.class);
+    }
+
+    @Provides
+    public GeneralAssistant provideGeneralAssistant(final ChatLanguageModel model,
+                                                    final ChatMemory chatMemory,
+                                                    final ContentRetriever contentRetriever) {
+        return AiServices.builder(GeneralAssistant.class)
+                .chatMemory(chatMemory)
+                .chatLanguageModel(model)
+                .contentRetriever(contentRetriever)
+                .build();
     }
 
     @Provides
