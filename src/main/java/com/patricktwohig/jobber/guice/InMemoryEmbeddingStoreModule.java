@@ -32,7 +32,11 @@ public class InMemoryEmbeddingStoreModule extends PrivateModule {
     public EmbeddingStoreContentRetriever provideContentRetriever(
             final EmbeddingModel embeddingModel,
             final EmbeddingStore<TextSegment> embeddingStore) {
-        return new EmbeddingStoreContentRetriever(embeddingStore, embeddingModel);
+        return EmbeddingStoreContentRetriever
+                .builder()
+                .embeddingStore(embeddingStore)
+                .embeddingModel(embeddingModel)
+                .build();
     }
 
 }

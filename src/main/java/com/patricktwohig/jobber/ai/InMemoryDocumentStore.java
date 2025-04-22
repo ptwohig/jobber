@@ -6,15 +6,21 @@ import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.output.Response;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dev.langchain4j.model.output.FinishReason.STOP;
+
 public class InMemoryDocumentStore implements DocumentStore {
+
+    private static final Logger logger = LoggerFactory.getLogger(InMemoryDocumentStore.class);
 
     private EmbeddingModel embeddingModel;
 
@@ -28,23 +34,21 @@ public class InMemoryDocumentStore implements DocumentStore {
 
     @Override
     public void remove(final Object object) {
-        documents.compute(object, (o, existing) -> {
-
-            if (existing != null) {
-                existing.forEach(getEmbeddingStore()::remove);
-            }
-
+        documents.computeIfPresent(object, (o, ids) -> {
+            getEmbeddingStore().removeAll(ids);
             return null;
-
         });
     }
 
     @Override
     public void upsertDocument(final Object object, final String name) {
-        documents.compute(object, (o, existing) -> {
+        documents.compute(object, (o, ids) -> {
 
-            if (existing != null) {
-                existing.forEach(getEmbeddingStore()::remove);
+            if (ids == null) {
+                ids = new ArrayList<>();
+            } else {
+                getEmbeddingStore().removeAll(ids);
+                ids.clear();
             }
 
             final var text = String.format("%s%n%s",
@@ -55,11 +59,26 @@ public class InMemoryDocumentStore implements DocumentStore {
             final var document = Document.document(text, Metadata.from(NAME, name));
             final var segments = getDocumentSplitter().split(document);
 
-            return segments.stream()
-                    .map(getEmbeddingModel()::embed)
-                    .map(Response::content)
-                    .map(getEmbeddingStore()::add)
-                    .toList();
+            for (final var segment : segments) {
+
+                final var result = getEmbeddingModel().embed(segment);
+
+                if (result.finishReason() != null && !STOP.equals(result.finishReason())) {
+                    logger.warn("Failed to embed document: {}", result.finishReason());
+                    continue;
+                }
+
+                if (result.content() == null) {
+                    logger.warn("Failed to embed document: (no content)");
+                    continue;
+                }
+
+                final var id = getEmbeddingStore().add(result.content(), segment);
+                ids.add(id);
+
+            }
+
+            return ids;
 
         });
     }
