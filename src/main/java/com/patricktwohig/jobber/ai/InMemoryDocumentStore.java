@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 
 import static dev.langchain4j.model.output.FinishReason.STOP;
@@ -33,19 +35,21 @@ public class InMemoryDocumentStore implements DocumentStore {
 
     private EmbeddingStore<TextSegment> embeddingStore;
 
-    private Map<Object, List<String>> documents = new IdentityHashMap<>();
+    private Map<UUID, List<String>> documents = new ConcurrentHashMap<>();
 
     @Override
     public void remove(final Object object) {
-        documents.computeIfPresent(object, (o, ids) -> {
+        documents.computeIfPresent((UUID) object, (o, ids) -> {
             getEmbeddingStore().removeAll(ids);
             return null;
         });
     }
 
     @Override
-    public void upsertDocument(final Object object, final String name) {
-        documents.compute(object, (o, ids) -> {
+    public Object upsertDocument(final Object object, final String name) {
+        final var uuid = UUID.randomUUID();
+
+        documents.compute(uuid, (o, ids) -> {
 
             if (ids != null) {
                 getEmbeddingStore().removeAll(ids);
@@ -84,6 +88,9 @@ public class InMemoryDocumentStore implements DocumentStore {
                     .join();
 
         });
+
+        return uuid;
+
     }
 
     public ForkJoinPool getForkJoinPool() {

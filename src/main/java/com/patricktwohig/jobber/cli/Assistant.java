@@ -24,8 +24,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import static com.patricktwohig.jobber.cli.ExitCode.INVALID_PARAMETER;
-import static com.patricktwohig.jobber.cli.ExitCode.UNSUPPORTED_OUTPUT_FORMAT;
+import static com.patricktwohig.jobber.cli.ExitCode.*;
 import static com.patricktwohig.jobber.cli.Format.*;
 import static com.patricktwohig.jobber.model.Task.NO_TASK_REQUESTED;
 
@@ -102,6 +101,10 @@ public class Assistant implements HasModules, Callable<Integer> {
 
     private String jobDescriptionText;
 
+    private final UndoStack<Resume> resumeUndoStack = new UndoStack<>();
+
+    private final UndoStack<CoverLetter> coverLetterUndoStack = new UndoStack<>();
+
     private final FormatterSetFactory formatterSetFactory = new FormatterSetFactory();
 
     @Override
@@ -120,9 +123,11 @@ public class Assistant implements HasModules, Callable<Integer> {
 
     private <T> T readInput(final InputLine input,
                             final Class<T> type,
-                            final DocumentInput documentInput) throws IOException {
+                            final DocumentInput documentInput) {
         try (var is = input.readInputStream(JSON)) {
             return documentInput.read(type, is);
+        } catch (IOException ex) {
+            throw new CliException(IO_EXCEPTION, ex);
         }
     }
 
@@ -197,16 +202,36 @@ public class Assistant implements HasModules, Callable<Integer> {
                     resultFormatter.format(generalFeedback, System.out);
                 }
                 case REVERT_RESUME -> {
-                    final var documentInput = injector.getInstance(DocumentInput.class);
-                    documentStore.remove(resume);
-                    resume = readInput(inputResume, Resume.class, documentInput);
+
+                    final var undoRequest = generalAssistant.undoTheRequestedActions(
+                            prompt,
+                            resumeUndoStack.getMaxSize()
+                    );
+
+                    resume = resumeUndoStack.pop(undoRequest.getCount())
+                            .orElseGet(() -> {
+                                final var documentInput = injector.getInstance(DocumentInput.class);
+                                return readInput(inputResume, Resume.class, documentInput);
+                            });
+
                     resultFormatter.format(resume, System.out);
+
                 }
                 case REVERT_COVER_LETTER -> {
-                    final var documentInput = injector.getInstance(DocumentInput.class);
-                    documentStore.remove(coverLetter);
-                    coverLetter = readInput(inputCoverLetter, CoverLetter.class, documentInput);
+
+                    final var undoRequest = generalAssistant.undoTheRequestedActions(
+                            prompt,
+                            coverLetterUndoStack.getMaxSize()
+                    );
+
+                    coverLetter = coverLetterUndoStack.pop(undoRequest.getCount())
+                            .orElseGet(() -> {
+                                final var documentInput = injector.getInstance(DocumentInput.class);
+                                return readInput(inputCoverLetter, CoverLetter.class, documentInput);
+                            });
+
                     resultFormatter.format(coverLetter, System.out);
+
                 }
                 case UPDATE_RESUME_WITH_COMMENTS -> {
 
@@ -216,10 +241,17 @@ public class Assistant implements HasModules, Callable<Integer> {
                             prompt
                     );
 
-                    resultFormatter.format(resumeResponse, System.out);
                     resume = resumeResponse.getResume();
+                    resultFormatter.format(resumeResponse, System.out);
+
                     writeResume(resumeResponse);
-                    documentStore.upsertDocument(resumeResponse, resumeResponse.getFileName());
+
+                    final var documentId = documentStore.upsertDocument(
+                            resumeResponse,
+                            resumeResponse.getFileName()
+                    );
+
+                    resumeUndoStack.push(resume, () -> documentStore.remove(documentId));
 
                 }
                 case UPDATE_COVER_LETTER_WITH_COMMENTS -> {
@@ -230,10 +262,16 @@ public class Assistant implements HasModules, Callable<Integer> {
                             prompt
                     );
 
-                    resultFormatter.format(coverLetterResponse, System.out);
                     coverLetter = coverLetterResponse.getCoverLetter();
+                    resultFormatter.format(coverLetterResponse, System.out);
+
                     writeCoverLetter(coverLetterResponse);
-                    documentStore.upsertDocument(coverLetterResponse, coverLetterResponse.getFileName());
+
+                    final var documentId = documentStore.upsertDocument(
+                            coverLetterResponse,
+                            coverLetterResponse.getFileName());
+
+                    coverLetterUndoStack.push(coverLetter, () -> documentStore.remove(documentId));
 
                 }
                 case PROVIDE_RESUME_ANALYSIS -> {

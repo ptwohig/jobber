@@ -24,7 +24,7 @@ public class PropertiesConfiguration implements Configuration {
     static {
         DEFAULT_PROPERTIES.put(API_TIMEOUT, "180");
         DEFAULT_PROPERTIES.put(LOG_API_CALLS, "false");
-        DEFAULT_PROPERTIES.put(OPENAI_CHAT_MODEL, "gpt-4o");
+        DEFAULT_PROPERTIES.put(OPENAI_CHAT_MODEL, "gpt-4.1");
         DEFAULT_PROPERTIES.put(OPENAI_EMBEDDING_MODEL, "text-embedding-ada-002");
         DEFAULT_PROPERTIES.put(MESSAGE_MEMORY_COUNT, "5");
         DEFAULT_PROPERTIES.put(EMBEDDING_PARALLEL_THREADS, "24");

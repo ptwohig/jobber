@@ -11,6 +11,6 @@ public interface DocumentStore {
         upsertDocument(object, name);
     }
 
-    void upsertDocument(Object object, String name);
+    Object upsertDocument(Object object, String name);
 
 }
