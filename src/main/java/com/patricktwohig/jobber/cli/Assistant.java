@@ -170,6 +170,7 @@ public class Assistant implements HasModules, Callable<Integer> {
 
         final var generalRemarks = jobsDescriptionAnalyst.analyzeJobDescription(jobDescriptionText);
         final var jobDescriptionSummary = jobsDescriptionAnalyst.summarizeJobDescription(jobDescriptionText);
+        documentStore.upsertDocument(jobDescriptionSummary, "Job Description Summary.");
 
         System.out.printf("%nJob Description Summary:%n");
         resultFormatter.format(jobDescriptionSummary, System.out);
