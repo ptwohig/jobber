@@ -1,6 +1,7 @@
 package com.patricktwohig.jobber.ai;
 
 import com.patricktwohig.jobber.model.GeneralRemarks;
+import com.patricktwohig.jobber.model.JobDescriptionSummary;
 import com.patricktwohig.jobber.model.Resume;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
@@ -31,6 +32,23 @@ public interface ResumeAnalyst {
     )
     GeneralRemarks analyzeResume(
             @V("resume") Resume resume
+    );
+
+    @SystemMessage(
+            """
+            You analyze job descriptions and resumes. Provide feedback on how well the resume matches the
+            job description, including a relevance score (0-100), remarks, and a brief summary.
+            """
+    )
+    @UserMessage(
+            """
+            Resume: {{resume}}
+            Job Description: {{jobDescription}}
+            """
+    )
+    GeneralRemarks analyzeResume(
+            @V("resume") Resume resume,
+            @V("jobDescription") JobDescriptionSummary jobDescription
     );
 
 }

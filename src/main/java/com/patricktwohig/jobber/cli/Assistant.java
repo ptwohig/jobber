@@ -275,11 +275,11 @@ public class Assistant implements HasModules, Callable<Integer> {
 
                 }
                 case PROVIDE_RESUME_ANALYSIS -> {
-                    final var remarks = resumeAnalyst.analyzeResume(resume);
+                    final var remarks = resumeAnalyst.analyzeResume(resume, jobDescriptionSummary);
                     resultFormatter.format(remarks, System.out);
                 }
                 case PROVIDE_COVER_LETTER_ANALYSIS -> {
-                    final var remarks = coverLetterAnalyst.analyzeCoverLetter(coverLetter);
+                    final var remarks = coverLetterAnalyst.analyzeCoverLetter(coverLetter, jobDescriptionSummary);
                     resultFormatter.format(remarks, System.out);
                 }
             }
