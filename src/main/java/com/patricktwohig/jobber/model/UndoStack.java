@@ -2,9 +2,10 @@ package com.patricktwohig.jobber.model;
 
 import java.util.LinkedList;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public class UndoStack<ValueT> {
+
+    private static final Runnable NOOP = () -> {};
 
     private static final int DEFAULT_MAX_SIZE = 256;
 
@@ -18,6 +19,10 @@ public class UndoStack<ValueT> {
 
     public UndoStack(int maxSize) {
         this.maxSize = maxSize;
+    }
+
+    public ValueT push(final ValueT value) {
+        return push(value, NOOP);
     }
 
     public ValueT push(final ValueT value, final Runnable action) {

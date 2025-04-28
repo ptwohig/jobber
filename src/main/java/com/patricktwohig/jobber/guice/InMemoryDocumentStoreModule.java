@@ -9,6 +9,7 @@ import com.patricktwohig.jobber.config.Configuration;
 import com.patricktwohig.jobber.format.GenericFormatter;
 import com.patricktwohig.jobber.format.plain.PlainTextGenericFormatter;
 import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.splitter.DocumentByCharacterSplitter;
 import dev.langchain4j.data.document.splitter.DocumentByLineSplitter;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.Tokenizer;
@@ -59,7 +60,7 @@ public class InMemoryDocumentStoreModule extends PrivateModule {
             final int maxSegmentSizeChars,
             @Named(Configuration.EMBEDDING_MAX_SEGMENT_OVERLAP_CHARS)
             final int maxSegmentOverlapChars) {
-        return new DocumentByLineSplitter(maxSegmentSizeChars, maxSegmentOverlapChars, tokenizer);
+        return new DocumentByCharacterSplitter(maxSegmentSizeChars, maxSegmentOverlapChars, tokenizer);
     }
 
     @Provides

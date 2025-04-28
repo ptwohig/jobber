@@ -12,7 +12,6 @@ import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -46,7 +45,7 @@ public class InMemoryDocumentStore implements DocumentStore {
     }
 
     @Override
-    public Object upsertDocument(final Object object, final String name) {
+    public Object upsert(final Object object, final Map<String, ?> metadata) {
         final var uuid = UUID.randomUUID();
 
         documents.compute(uuid, (o, ids) -> {
@@ -55,12 +54,10 @@ public class InMemoryDocumentStore implements DocumentStore {
                 getEmbeddingStore().removeAll(ids);
             }
 
-            final var text = String.format("%s%n%s",
-                    name,
-                    getGenericFormatter().format(object)
+            final var document = Document.document(
+                    getGenericFormatter().format(object),
+                    Metadata.from(metadata)
             );
-
-            final var document = Document.document(text, Metadata.from(NAME, name));
 
             return getForkJoinPool().submit(() -> getDocumentSplitter().split(document)
                     .stream()

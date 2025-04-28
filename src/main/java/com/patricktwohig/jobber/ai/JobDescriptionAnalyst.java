@@ -16,6 +16,15 @@ public interface JobDescriptionAnalyst {
             requirements.
             """
     )
+    @UserMessage("Summarize the job description.")
+    JobDescriptionSummary summarizeJobDescription();
+
+    @SystemMessage(
+            """
+            You summarize job descriptions. Provide a brief summary of the job description, highlighting key points and
+            requirements.
+            """
+    )
     @UserMessage(
             """
             Job Description: {{jobDescription}}
