@@ -34,4 +34,31 @@ public interface DocumentStore {
 
     Object upsert(Object object, Map<String, ?> metadata);
 
+    default void replace(Object documentId, Object object, String ... metadata) {
+
+        if (metadata.length % 2 != 0) {
+            throw new IllegalArgumentException("Metadata must be in key-value pairs");
+        } else if (metadata.length == 0) {
+            replace(documentId, object, Map.of());
+        } else {
+
+            final var map = new TreeMap<String, String>();
+
+            for (int i = 0; i < metadata.length; i += 2) {
+
+                if (metadata[i] == null || metadata[i + 1] == null) {
+                    throw new IllegalArgumentException("Metadata keys and values must not be null");
+                }
+                map.put(metadata[i], metadata[i + 1]);
+
+            }
+
+            replace(documentId, object, map);
+
+        }
+
+    }
+
+    void replace(Object documentId, Object object, Map<String, ?> metadata);
+
 }

@@ -2,6 +2,7 @@ package com.patricktwohig.jobber.model;
 
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class UndoStack<ValueT> {
 
@@ -23,6 +24,10 @@ public class UndoStack<ValueT> {
 
     public ValueT push(final ValueT value) {
         return push(value, NOOP);
+    }
+
+    public ValueT push(final ValueT value, final Consumer<ValueT> action) {
+        return push(value, () -> action.accept(value));
     }
 
     public ValueT push(final ValueT value, final Runnable action) {

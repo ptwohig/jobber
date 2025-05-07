@@ -164,17 +164,17 @@ public class Assistant implements HasModules, Callable<Integer> {
 
         final var documentStore = injector.getInstance(DocumentStore.class);
 
-        documentStore.upsert(resume,
+        final var resumeId = documentStore.upsert(resume,
                 "Document Description",
                 "Original base resume for jobseeker.",
                 "How to read this document.",
                 "Use this document as the base resume for the jobseeker and derive edits from it."
         );
 
-        documentStore.upsert(coverLetter,
-                "Document Description",
+        final var coverLetterId = documentStore.upsert(coverLetter,
+                "description",
                 "Original base cover letter for candidate.",
-                "How to read this document.",
+                "usage",
                 "Use this document as the base cover letter for the jobseeker and derive edits from it."
         );
 
@@ -184,9 +184,9 @@ public class Assistant implements HasModules, Callable<Integer> {
         final var jobDescriptionSummary = jobsDescriptionAnalyst.summarizeJobDescription(jobDescriptionText);
 
         documentStore.upsert(jobDescriptionText,
-                "Document Description",
+                "description",
                 "The job description of interest to the jobseeker.",
-                "How to read this document.",
+                "usage.",
                 "Refer to this document to understand the job description."
         );
 
@@ -262,17 +262,7 @@ public class Assistant implements HasModules, Callable<Integer> {
 
                     resume = resumeResponse.getResume();
                     resultFormatter.format(resumeResponse, System.out);
-
                     writeResume(resumeResponse);
-
-                    final var documentId = documentStore.upsert(
-                            resumeResponse,
-                            "Document Description",
-                            "Revised resume for jobseeker.",
-                            "How to read this document.",
-                            "Refer to this as the a revision of the resume you are helping to edit."
-                    );
-
                     resumeUndoStack.push(resume);
 
                 }
@@ -286,17 +276,7 @@ public class Assistant implements HasModules, Callable<Integer> {
 
                     coverLetter = coverLetterResponse.getCoverLetter();
                     resultFormatter.format(coverLetterResponse, System.out);
-
                     writeCoverLetter(coverLetterResponse);
-
-                    final var documentId = documentStore.upsert(
-                            coverLetterResponse,
-                            "Document Description",
-                            "Revised cover letter for jobseeker.",
-                            "How to read this document.",
-                            "Refer to this as the a revision of the resume you are helping to edit."
-                    );
-
                     coverLetterUndoStack.push(coverLetter);
 
                 }

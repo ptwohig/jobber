@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
@@ -46,6 +47,7 @@ public class InMemoryDocumentStore implements DocumentStore {
 
     @Override
     public Object upsert(final Object object, final Map<String, ?> metadata) {
+
         final var uuid = UUID.randomUUID();
 
         documents.compute(uuid, (o, ids) -> {
@@ -54,39 +56,62 @@ public class InMemoryDocumentStore implements DocumentStore {
                 getEmbeddingStore().removeAll(ids);
             }
 
-            final var document = Document.document(
-                    getGenericFormatter().format(object),
-                    Metadata.from(metadata)
-            );
-
-            return getForkJoinPool().submit(() -> getDocumentSplitter().split(document)
-                    .stream()
-                    .parallel()
-                    .map(segment -> {
-
-                        final var result = getEmbeddingModel().embed(segment);
-
-                        if (result.finishReason() != null && !STOP.equals(result.finishReason())) {
-                            logger.warn("Failed to embed document: {}", result.finishReason());
-                            return EmbeddedSegment.INVALID;
-                        }
-
-                        if (result.content() == null) {
-                            logger.warn("Failed to embed document: (no content)");
-                            return EmbeddedSegment.INVALID;
-                        }
-
-                        return new EmbeddedSegment(result.content(), segment);
-
-                    })
-                    .filter(EmbeddedSegment::isValid)
-                    .map(es -> getEmbeddingStore().add(es.embedding(), es.segment()))
-                    .toList())
-                    .join();
+            return process(object, metadata);
 
         });
 
         return uuid;
+
+    }
+
+    @Override
+    public void replace(final Object documentId, final Object object, final Map<String, ?> metadata) {
+
+        documents.compute( (UUID) documentId, (k, ids) -> {
+
+            if (k == null) {
+                throw new NoSuchElementException("No such document: " + documentId);
+            } else {
+                getEmbeddingStore().removeAll(ids);
+            }
+
+            return process(object, metadata);
+
+        });
+
+    }
+
+    private List<String> process(final Object object, final Map<String, ?> metadata) {
+
+        final var document = Document.document(
+                getGenericFormatter().format(object),
+                Metadata.from(metadata)
+        );
+
+        return getForkJoinPool().submit(() -> getDocumentSplitter().split(document)
+                        .stream()
+                        .parallel()
+                        .map(segment -> {
+
+                            final var result = getEmbeddingModel().embed(segment);
+
+                            if (result.finishReason() != null && !STOP.equals(result.finishReason())) {
+                                logger.warn("Failed to embed document: {}", result.finishReason());
+                                return EmbeddedSegment.INVALID;
+                            }
+
+                            if (result.content() == null) {
+                                logger.warn("Failed to embed document: (no content)");
+                                return EmbeddedSegment.INVALID;
+                            }
+
+                            return new EmbeddedSegment(result.content(), segment);
+
+                        })
+                        .filter(EmbeddedSegment::isValid)
+                        .map(es -> getEmbeddingStore().add(es.embedding(), es.segment()))
+                        .toList())
+                .join();
 
     }
 
