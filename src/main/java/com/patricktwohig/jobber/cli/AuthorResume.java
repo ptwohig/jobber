@@ -3,11 +3,15 @@ package com.patricktwohig.jobber.cli;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.patricktwohig.jobber.ai.DocumentStore;
 import com.patricktwohig.jobber.ai.ResumeAuthor;
+import com.patricktwohig.jobber.ai.TaskResolver;
 import com.patricktwohig.jobber.format.ResumeFormatter;
 import com.patricktwohig.jobber.guice.*;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.model.Resume;
+import com.patricktwohig.jobber.model.TaskResult;
+import com.patricktwohig.jobber.model.UndoStack;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -88,10 +92,18 @@ public class AuthorResume implements Callable<Integer>, HasModules {
 
         final var resumeAuthor = injector.getInstance(ResumeAuthor.class);
         final var documentInput = injector.getInstance(DocumentInput.class);
+        final var documentStore = injector.getInstance(DocumentStore.class);
 
         var latestRevision = documentInput.read(Resume.class, input.readInputStream());
 
         final var scanner = new Scanner(System.in);
+
+        documentStore.upsert(latestRevision,
+                "description",
+                "Original for the jobseeker to edit.",
+                "usage",
+                "Use this document as the resume for the jobseeker and derive edits from it."
+        );
 
         System.out.printf("Using input %s and output %s%n", input, output);
         writeResumeToStdout(latestRevision);
@@ -101,11 +113,20 @@ public class AuthorResume implements Callable<Integer>, HasModules {
 
         do {
 
-            final var comments = scanner.nextLine();
+            final var prompt = scanner.nextLine();
+
             System.out.println("Just a moment...");
 
-            final var revisions = resumeAuthor.tuneResumeBasedOnJobSeekersComments(latestRevision, comments);
+            final var revisions = resumeAuthor.tuneResumeBasedOnJobSeekersComments(latestRevision, prompt);
             latestRevision = revisions.getResume();
+
+            documentStore.upsert(
+                    latestRevision,
+                    "description",
+                    "Updated resume.",
+                    "usage",
+                    "Use this document to reference edits to the resume."
+            );
 
             if (echo) {
                 System.out.println("--");

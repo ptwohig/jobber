@@ -1,6 +1,5 @@
 package com.patricktwohig.jobber.ai;
 
-import com.patricktwohig.jobber.model.Approval;
 import com.patricktwohig.jobber.model.Task;
 import com.patricktwohig.jobber.model.TaskResult;
 import dev.langchain4j.service.SystemMessage;
@@ -22,32 +21,36 @@ public interface TaskResolver {
      *
      * @param prompt the prompt
      */
-    default TaskResult resolve(@V("prompt") String prompt) {
-        final var tasks = Stream.of(Task.values())
+    default TaskResult resolve(@V("prompt") final String prompt) {
+        return resolve(prompt, Task.values());
+    }
+
+    /**
+     * Invokes {@link #resolve(String, String)} with detailed task descriptions.
+     *
+     * @param prompt the prompt
+     */
+    default TaskResult resolve(@V("prompt") final String prompt, final Task ... _tasks) {
+
+        final var tasks = Stream.of(_tasks)
                 .map(t -> format("%s: %s", t.name(), t.getDescription()))
                 .collect(Collectors.joining("\n"));
 
-        final var approval = Stream.of(Approval.values())
-                .map(Approval::name)
-                .collect(Collectors.joining("\n"));
+        return resolve(prompt, tasks);
 
-        return resolve(prompt, tasks, approval);
     }
-
+    
     @SystemMessage(
             """
             You are tasked with identifying the user's request. Analyze the provided prompt and select the most
-            appropriate task from the list below. You will not be performing the task, just identifying it. Indicate
-            the level of approval expressed in processing the task.
+            appropriate task from the list below. You will not be performing the task, just identifying it.
 
             Task list:
             {{tasks}}
-            {{approval}}
             """
     )
     @UserMessage("{{prompt}}")
     TaskResult resolve(@V("prompt") String prompt,
-                       @V("tasks") String tasks,
-                       @V("approval") String approval);
+                       @V("tasks") String tasks);
 
 }

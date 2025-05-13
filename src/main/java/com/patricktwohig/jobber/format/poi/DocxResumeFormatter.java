@@ -50,10 +50,6 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final String SKILLS_HEADLINE = "Core Competencies";
 
-    private static final DateTimeFormatter POSITION_DATE_FORMAT = DateTimeFormatter.ofPattern("MMMM yyyy");
-
-    private static final DateTimeFormatter EDUCATION_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy");
-
     private static final String NAME_BACKGROUND_COLOR = "D474FC";
 
     private static final String CONTACT_BACKGROUND_COLOR = "D1BAFF";
@@ -241,6 +237,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
                         contactInfoRun.setText(nfo);
                         return contactInfoRun;
                     }))
+
                     .withRuns(allLinks.stream().map(link -> () -> {
                         final var record = new DocumentLinkRecord(document(), link);
                         return record.writeAbbreviated(contactParagraph);
@@ -272,6 +269,10 @@ public class DocxResumeFormatter implements ResumeFormatter {
             summaryParagraph.setAlignment(BOTH);
             run = summaryParagraph.createRun();
             run.setText(headlineSummary == null ? "<<Your Summary>>" : headlineSummary);
+
+            if (headlineSkills == null || headlineSkills.isEmpty()) {
+                return;
+            }
 
             final var skillsHeadlineParagraph = createStandardParagraph(SKILLS_SUMMARY_BACKGROUND_COLOR);
             skillsHeadlineParagraph.setAlignment(CENTER);
