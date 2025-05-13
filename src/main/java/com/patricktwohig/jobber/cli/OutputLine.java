@@ -39,7 +39,7 @@ public record OutputLine(Format format, String destination) implements HasFormat
             return defaultOutput;
         }
 
-        final var destinationPath = Paths.get(destination);
+        final var destinationPath = Paths.get(destination).toAbsolutePath();
         createDirectories(destinationPath.getParent());
 
         return new FileOutputStream(destination);

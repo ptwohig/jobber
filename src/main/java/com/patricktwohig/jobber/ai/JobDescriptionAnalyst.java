@@ -1,9 +1,7 @@
 package com.patricktwohig.jobber.ai;
 
-import com.patricktwohig.jobber.model.CoverLetter;
 import com.patricktwohig.jobber.model.GeneralRemarks;
 import com.patricktwohig.jobber.model.JobDescriptionSummary;
-import com.patricktwohig.jobber.model.Resume;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;

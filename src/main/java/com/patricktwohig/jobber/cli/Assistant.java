@@ -288,6 +288,9 @@ public class Assistant implements HasModules, Callable<Integer> {
                     final var remarks = coverLetterAnalyst.analyzeCoverLetter(coverLetter, jobDescriptionSummary);
                     resultFormatter.format(remarks, System.out);
                 }
+                case SUMMARIZE_JOB_DESCRIPTION -> {
+
+                }
             }
 
         } while (!Task.QUIT.equals(task));

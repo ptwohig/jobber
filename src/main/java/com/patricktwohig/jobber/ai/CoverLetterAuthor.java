@@ -71,7 +71,7 @@ public interface CoverLetterAuthor {
             """
             You author cover letters for jobseekers based on the provided information. Modify the cover letter
             according to the jobseeker's comments, using the supplied cover letter as a base. Provide a brief filename
-            without an extension.
+            without an extension. Remove null values.
             """
     )
     @UserMessage(
