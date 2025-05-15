@@ -6,12 +6,10 @@ import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTAbstractNum;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTStyles;
 
-import javax.swing.text.html.Option;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -50,11 +48,17 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
     private static final String SKILLS_HEADLINE = "Core Competencies";
 
+    private static final String LEADERSHIP_HIGHLIGHTS_HEADLINE = "Leadership Highlights";
+
     private static final String NAME_BACKGROUND_COLOR = "D474FC";
 
     private static final String CONTACT_BACKGROUND_COLOR = "D1BAFF";
 
+    private static final String EXPERIENCE_BACKGROUND_COLOR = "F5C4FF";
+
     private static final String SKILLS_SUMMARY_BACKGROUND_COLOR = "F5C4FF";
+
+    private static final String LEADERSHIP_HIGHLIGHTS_BACKGROUND_COLOR = "F5C4FF";
 
     private static final int HORIZONTAL_RULE_LEFT = 450;
 
@@ -120,7 +124,6 @@ public class DocxResumeFormatter implements ResumeFormatter {
 
             if (resume().getHeadline() != null) {
                 writeHeadline();
-                createHorizontalRule();
             }
 
             if (resume().getPositions() != null) {
@@ -270,13 +273,24 @@ public class DocxResumeFormatter implements ResumeFormatter {
             run = summaryParagraph.createRun();
             run.setText(headlineSummary == null ? "<<Your Summary>>" : headlineSummary);
 
-            if (headlineSkills == null || headlineSkills.isEmpty()) {
-                return;
+            if (headlineSkills != null && !headlineSkills.isEmpty()) {
+                writeHeadlineSkills(headlineSkills);
             }
+
+            final var leadershipHighlights = headline.getLeadershipHighlights();
+
+            if (leadershipHighlights != null && !leadershipHighlights.isEmpty()) {
+                writeLeadershipHighlights(leadershipHighlights);
+            }
+
+        }
+
+        private void writeHeadlineSkills(final List<String> headlineSkills) {
 
             final var skillsHeadlineParagraph = createStandardParagraph(SKILLS_SUMMARY_BACKGROUND_COLOR);
             skillsHeadlineParagraph.setAlignment(CENTER);
-            run = skillsHeadlineParagraph.createRun();
+
+            final var run = skillsHeadlineParagraph.createRun();
             run.setBold(HEADLINE_BOLD);
             run.setFontSize(HEADLINE_SIZE);
             run.setText(SKILLS_HEADLINE);
@@ -295,6 +309,37 @@ public class DocxResumeFormatter implements ResumeFormatter {
                         skillRun.setText(skill);
                         return skillRun;
                     })).build().write();
+
+        }
+
+        private void writeLeadershipHighlights(final List<String> leadershipHighlights) {
+
+            final var skillsHeadlineParagraph = createStandardParagraph(LEADERSHIP_HIGHLIGHTS_BACKGROUND_COLOR);
+            skillsHeadlineParagraph.setAlignment(CENTER);
+
+            final var run = skillsHeadlineParagraph.createRun();
+            run.setBold(HEADLINE_BOLD);
+            run.setFontSize(HEADLINE_SIZE);
+            run.setText(LEADERSHIP_HIGHLIGHTS_HEADLINE);
+
+            final var iterator = leadershipHighlights.iterator();
+
+            while (iterator.hasNext()) {
+
+                final var leadershipHighlight = iterator.next();
+                final var leadershipHighlightParagraph = document().createParagraph();
+
+                if (!iterator.hasNext()) {
+                    leadershipHighlightParagraph.setSpacingAfter(PARAGRAPH_SPACING);
+                }
+
+                leadershipHighlightParagraph.setNumID(numberingId());
+                leadershipHighlightParagraph.setNumILvl(BigInteger.ZERO);
+
+                final var leadershipHighlightRun = leadershipHighlightParagraph.createRun();
+                leadershipHighlightRun.setText(leadershipHighlight);
+
+            }
 
         }
 
@@ -323,7 +368,7 @@ public class DocxResumeFormatter implements ResumeFormatter {
                 final PositionType type,
                 final List<Position> positions) {
 
-            final var headerParagraph = createStandardParagraph();
+            final var headerParagraph = createStandardParagraph(EXPERIENCE_BACKGROUND_COLOR);
             headerParagraph.setAlignment(CENTER);
 
             final var headerRun = headerParagraph.createRun();

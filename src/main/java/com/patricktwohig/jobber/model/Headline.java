@@ -11,6 +11,8 @@ public class Headline {
 
     private List<String> skills;
 
+    private List<String> leadershipHighlights;
+
     public String getTitle() {
         return title;
     }
@@ -35,27 +37,35 @@ public class Headline {
         this.skills = skills;
     }
 
+    public List<String> getLeadershipHighlights() {
+        return leadershipHighlights;
+    }
+
+    public void setLeadershipHighlights(List<String> leadershipHighlights) {
+        this.leadershipHighlights = leadershipHighlights;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        Headline headline = (Headline) object;
+        return Objects.equals(getTitle(), headline.getTitle()) && Objects.equals(getSummary(), headline.getSummary()) && Objects.equals(getSkills(), headline.getSkills()) && Objects.equals(getLeadershipHighlights(), headline.getLeadershipHighlights());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTitle(), getSummary(), getSkills(), getLeadershipHighlights());
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Headline{");
         sb.append("title='").append(title).append('\'');
         sb.append(", summary='").append(summary).append('\'');
         sb.append(", skills=").append(skills);
+        sb.append(", leadershipHighlights=").append(leadershipHighlights);
         sb.append('}');
         return sb.toString();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Headline headline = (Headline) o;
-        return Objects.equals(getTitle(), headline.getTitle()) && Objects.equals(getSummary(), headline.getSummary()) && Objects.equals(getSkills(), headline.getSkills());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getTitle(), getSummary(), getSkills());
-    }
-
+    
 }

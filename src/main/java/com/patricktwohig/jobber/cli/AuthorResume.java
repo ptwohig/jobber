@@ -5,17 +5,17 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.patricktwohig.jobber.ai.DocumentStore;
 import com.patricktwohig.jobber.ai.ResumeAuthor;
-import com.patricktwohig.jobber.ai.TaskResolver;
 import com.patricktwohig.jobber.format.ResumeFormatter;
-import com.patricktwohig.jobber.guice.*;
+import com.patricktwohig.jobber.guice.HtmlUnitPageInputModule;
+import com.patricktwohig.jobber.guice.JacksonPostprocessorModule;
+import com.patricktwohig.jobber.guice.JsonDocumentInputModule;
 import com.patricktwohig.jobber.input.DocumentInput;
 import com.patricktwohig.jobber.model.Resume;
-import com.patricktwohig.jobber.model.TaskResult;
-import com.patricktwohig.jobber.model.UndoStack;
 import picocli.CommandLine;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
